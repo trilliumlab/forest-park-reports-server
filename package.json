@@ -1,0 +1,45 @@
+{
+  "name": "forest-park-reports-server",
+  "version": "0.1.0",
+  "description": "A Typescript Project.",
+  "type": "module",
+  "engines": {
+    "node": ">= 16.13 <17"
+  },
+  "devDependencies": {
+    "@types/node": "~16",
+    "@typescript-eslint/eslint-plugin": "~5.26",
+    "@typescript-eslint/parser": "~5.26",
+    "concurrently": "~7.2",
+    "eslint": "~8.16",
+    "eslint-config-prettier": "~8.5",
+    "nodemon": "~2.0",
+    "prettier": "~2.6",
+    "rimraf": "~3.0",
+    "tsutils": "~3.21",
+    "typescript": "~4.7"
+  },
+  "scripts": {
+    "start": "npm run build && npm run run | pino-pretty",
+    "start:watch": "concurrently \"npm run build:watch\" \"nodemon build/main.js | pino-pretty\"",
+    "clean": "rimraf coverage build tmp",
+    "prebuild": "npm run lint",
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -w -p tsconfig.json",
+    "build:release": "npm run clean && tsc -p tsconfig.release.json",
+    "run": "node build/main.js",
+    "lint": "eslint . --ext .ts --ext .mts",
+    "prettier": "prettier --config .prettierrc --write ."
+  },
+  "author": "Elliot Nash <elliotnash@users.noreply.github.com>",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "~4.2",
+    "pino": "~8.1",
+    "pino-pretty": "~8.1",
+    "tslib": "~2.4"
+  },
+  "volta": {
+    "node": "16.13.0"
+  }
+}
