@@ -1,11 +1,11 @@
 import { FastifyPluginAsync } from "fastify";
-
-import parkTrails from "../trails.js";
+import trailRoutes from "./trails.js";
 
 const apiRoutes: FastifyPluginAsync = async (server) => {
-  console.log(parkTrails);
-  server.get('/ping', async (_request, _reply) => {
+  server.get('/ping', async () => {
     return "Pong!";
   });
+  // register other routes
+  server.register(trailRoutes, {prefix: '/trails'});
 };
 export default apiRoutes;

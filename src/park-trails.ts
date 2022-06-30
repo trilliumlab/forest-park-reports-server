@@ -17,14 +17,9 @@ interface TrailInfo {
 type TrailMap = Record<string, Trail>;
 
 /** Holds all trail gpx files and trail information */
-class ParkTrails {
+export default class ParkTrails {
   parkTrails: TrailMap;
-
-  constructor() {
-    this.parkTrails = this.loadTrails();
-  }
-
-  private loadTrails(): TrailMap {
+  async loadTrails() {
     const tmpTrails: TrailMap = {};
     for (const file of fs.readdirSync(trailsDir)) {
       const filePath = path.join(trailsDir, file);
@@ -34,12 +29,6 @@ class ParkTrails {
         tmpTrails[file] = {info, gpx};
       }
     }
-    return tmpTrails;
-  }
-
-  reload() {
-    this.parkTrails = this.loadTrails();
+    this.parkTrails = tmpTrails;
   }
 }
-
-export default new ParkTrails();
