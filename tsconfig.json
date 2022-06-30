@@ -12,12 +12,6 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitAny": false,
-    "noImplicitThis": false,
-    "strictNullChecks": false
   },
   "include": ["src/**/*"]
 }
