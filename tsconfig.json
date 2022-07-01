@@ -12,6 +12,7 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "downlevelIteration": true
   },
   "include": ["src/**/*"]
 }
