@@ -2,16 +2,17 @@ import root from 'app-root-path';
 import path from 'path';
 import fs from 'fs-extra';
 import Service from '../service.js';
+import Server from "../server.js";
 
 const trailsDir = path.join(root.path, "trails");
 
-interface TrailInfo {
+export interface TrailInfo {
   name: string,
   uuid: string,
 }
 
-type TrailInfoRecord = Record<string, TrailInfo>;
-type GpxRecord = Record<string, string>;
+export type TrailInfoRecord = Record<string, TrailInfo>;
+export type GpxRecord = Record<string, string>;
 
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
@@ -19,19 +20,23 @@ export default class TrailsService implements Service {
   trailPaths: GpxRecord;
   async init() {
     await this.loadTrails();
+    await this.loadTrailInfo();
+    setInterval(this.loadTrails.bind(this), Server().config.trails.reloadInterval*1000);
+    setInterval(this.loadTrailInfo.bind(this), Server().config.trails.reloadInterval*1000);
   }
   async loadTrails() {
-    const trailInfo = {};
-    const parkTrails = {};
-    for (const file of fs.readdirSync(trailsDir)) {
+    const trailPaths = {};
+    for (const file of await fs.readdir(trailsDir)) {
       const filePath = path.join(trailsDir, file);
       const uuid = file.replaceAll("-", "");
       if (fs.statSync(filePath).isDirectory()) {
-        trailInfo[uuid] = JSON.parse(await fs.readFile(path.join(filePath, "trail.json"), 'utf-8'))
-        parkTrails[uuid] = await fs.readFile(path.join(filePath, "trail.gpx"), 'utf-8');
+        trailPaths[uuid] = await fs.readFile(path.join(filePath, "trail.gpx"), 'utf-8');
       }
     }
-    this.trailInfo = trailInfo;
-    this.trailPaths = parkTrails;
+    this.trailPaths = trailPaths;
+  }
+  async loadTrailInfo() {
+    Server().logger.info("Reloading trail info");
+    this.trailInfo = await Server().database.fetchTrailInfo();
   }
 }

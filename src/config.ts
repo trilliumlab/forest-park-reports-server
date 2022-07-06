@@ -8,6 +8,9 @@ export default interface Config {
   database: {
     url: string,
     maxConnections: number
+  },
+  trails: {
+    reloadInterval: number
   }
 }
 

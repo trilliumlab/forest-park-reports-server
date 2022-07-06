@@ -23,8 +23,8 @@
     "typescript": "~4.7"
   },
   "scripts": {
-    "start": "npm run build && npm run run | pino-pretty",
-    "start:watch": "concurrently \"npm run build:watch\" \"nodemon build/server.js | pino-pretty\"",
+    "start": "npm run build && npm run run | pino-pretty -t -c",
+    "start:watch": "concurrently \"npm run build:watch\" \"nodemon build/server.js | pino-pretty -t -c\"",
     "clean": "rimraf coverage build tmp",
     "prebuild:release": "npm run lint",
     "build": "tsc -p tsconfig.json",
