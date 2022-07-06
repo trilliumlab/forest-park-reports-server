@@ -28,15 +28,14 @@ export default class TrailsService implements Service {
     const trailPaths = {};
     for (const file of await fs.readdir(trailsDir)) {
       const filePath = path.join(trailsDir, file);
-      const uuid = file.replaceAll("-", "");
-      if (fs.statSync(filePath).isDirectory()) {
-        trailPaths[uuid] = await fs.readFile(path.join(filePath, "trail.gpx"), 'utf-8');
+      const uuid = file.replaceAll("-", "").split(".")[0];
+      if ((await fs.stat(filePath)).isFile()) {
+        trailPaths[uuid] = await fs.readFile(filePath, 'utf-8');
       }
     }
     this.trailPaths = trailPaths;
   }
   async loadTrailInfo() {
-    Server().logger.info("Reloading trail info");
     this.trailInfo = await Server().database.fetchTrailInfo();
   }
 }
