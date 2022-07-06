@@ -10,6 +10,7 @@
     "@types/app-root-path": "~1.2",
     "@types/fs-extra": "^9.0.13",
     "@types/node": "~16",
+    "@types/pg": "^8.6.5",
     "@typescript-eslint/eslint-plugin": "~5.26",
     "@typescript-eslint/parser": "~5.26",
     "concurrently": "~7.2",
@@ -39,6 +40,7 @@
     "app-root-path": "~3.0",
     "fastify": "~4.2",
     "fs-extra": "^10.1.0",
+    "pg": "^8.7.3",
     "pino": "~8.1",
     "pino-pretty": "~8.1",
     "tslib": "~2.4"

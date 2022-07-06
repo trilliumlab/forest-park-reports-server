@@ -1,6 +1,7 @@
 import root from 'app-root-path';
 import path from 'path';
 import fs from 'fs-extra';
+import Service from '../service.js';
 
 const trailsDir = path.join(root.path, "trails");
 
@@ -13,9 +14,12 @@ type TrailInfoRecord = Record<string, TrailInfo>;
 type GpxRecord = Record<string, string>;
 
 /** Holds all trail gpx files and trail information */
-export default class ParkTrails {
+export default class TrailsService implements Service {
   trailInfo: TrailInfoRecord;
   trailPaths: GpxRecord;
+  async init() {
+    await this.loadTrails();
+  }
   async loadTrails() {
     const trailInfo = {};
     const parkTrails = {};
