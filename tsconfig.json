@@ -12,7 +12,8 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "resolveJsonModule": true,
   },
   "include": ["src/**/*"]
 }

@@ -1,6 +1,7 @@
-import { fastify, FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { fastify, FastifyInstance } from "fastify";
 import { pino, Logger } from 'pino';
 
+import Config, { loadConfig } from "./config.js";
 import Decorators from "./decorators.js";
 import apiRoutes from './routes/api.js';
 import DbService from "./services/db-service.js";
@@ -11,6 +12,8 @@ const port = 3000;
 class ForestParkServer {
   logger: Logger;
   server: FastifyInstance<any>;
+  // server config
+  config: Config
   // construct services
   trails = new TrailsService();
   database = new DbService();
@@ -23,9 +26,11 @@ class ForestParkServer {
   // This is where we run any async code that needs
   // to be run before the http server can be started
   async initialize() {
+    // load config before initializing services, services rely on config
+    this.config = await loadConfig();
+    // starts all services
     await this.initServices();
-    // make sure that routes are registered at the end of initialization
-    // as routes can depend on service initialization.
+    // routes and decorators can depend on service initialization and are registered at the end.
     this.decorators.register(this.server);
     await this.registerRoutes();
   }
