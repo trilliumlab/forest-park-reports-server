@@ -1,6 +1,6 @@
 export interface Hazard extends NewHazardRequest {
   uuid: string,
-  time: string,
+  time: Date,
 }
 
 export interface NewHazardRequest {
