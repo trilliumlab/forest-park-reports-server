@@ -28,6 +28,7 @@ export default class DbService implements Service {
     const hazardsQuery = `CREATE TABLE IF NOT EXISTS public.hazards (
         uuid uuid NOT NULL,
         "time" timestamp with time zone NOT NULL,
+        active boolean NOT NULL,
         hazard text NOT NULL,
         trail uuid NOT NULL,
         index integer NOT NULL,
@@ -62,13 +63,14 @@ export default class DbService implements Service {
     const query = {
       name: 'save-hazard',
       text: `INSERT INTO public.hazards (
-        uuid, "time", hazard, trail, index, lat, "long", image
+        uuid, "time", active, hazard, trail, index, lat, "long", image
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8
+        $1, $2, $3, $4, $5, $6, $7, $8, $9
       );`,
       values: [
         hazard.uuid,
         hazard.time.toISOString(),
+        hazard.active,
         hazard.hazard,
         hazard.location.trail,
         hazard.location.index,
@@ -80,16 +82,20 @@ export default class DbService implements Service {
     await client.query(query);
     client.release();
   }
-  async fetchHazards(): Promise<Array<Hazard>> {
+  async fetchHazards(all: boolean): Promise<Array<Hazard>> {
     const client = await this.pool.connect();
-    const query = {
-      name: 'fetch-hazards',
+    const query = all ? {
+      name: 'fetch-all-hazards',
       text: `SELECT * FROM public.hazards`
+    } : {
+      name: 'fetch-active-hazards',
+      text: `SELECT * FROM public.hazards WHERE active;`
     };
     const res = await client.query(query);
     return res.rows.map(e => ({
       uuid: e.uuid,
       time: e.time,
+      active: e.active,
       hazard: e.hazard,
       location: {
         trail: e.trail,

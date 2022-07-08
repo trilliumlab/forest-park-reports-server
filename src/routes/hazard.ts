@@ -10,6 +10,7 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     const hazard = {
       uuid: uuidv1(),
       time: new Date(),
+      active: true,
       ...req.body
     };
     // check that the associated trail actually exists
@@ -20,8 +21,8 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     await Server().database.saveHazard(hazard);
     return hazard;
   });
-  server.get("/list", async (req, rep) => {
-    return await Server().database.fetchHazards();
+  server.get("/list", async (req: FastifyRequest<{Querystring: {all?: string}}>, rep) => {
+    return await Server().database.fetchHazards(req.query.all !== undefined);
   });
 };
 export default hazardRoutes;
