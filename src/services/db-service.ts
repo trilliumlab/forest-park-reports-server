@@ -82,12 +82,9 @@ export default class DbService implements Service {
     await client.query(query);
     client.release();
   }
-  async fetchHazards(all: boolean): Promise<Array<Hazard>> {
+  async fetchActiveHazards(): Promise<Array<Hazard>> {
     const client = await this.pool.connect();
-    const query = all ? {
-      name: 'fetch-all-hazards',
-      text: `SELECT * FROM public.hazards`
-    } : {
+    const query = {
       name: 'fetch-active-hazards',
       text: `SELECT * FROM public.hazards WHERE active;`
     };

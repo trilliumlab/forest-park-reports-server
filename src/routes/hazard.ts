@@ -21,8 +21,8 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     await Server().database.saveHazard(hazard);
     return hazard;
   });
-  server.get("/list", async (req: FastifyRequest<{Querystring: {all?: string}}>, rep) => {
-    return await Server().database.fetchHazards(req.query.all !== undefined);
+  server.get("/active", async (req, rep) => {
+    return await Server().database.fetchActiveHazards();
   });
 };
 export default hazardRoutes;
