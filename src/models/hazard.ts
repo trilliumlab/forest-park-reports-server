@@ -1,7 +1,12 @@
+export interface Hazard extends NewHazardRequest {
+  uuid: string,
+  time: string,
+}
+
 export interface NewHazardRequest {
-  hazard: Hazard,
+  hazard: HazardType,
   location: SnappedLocation,
-  image?: string
+  image?: string,
 }
 export interface SnappedLocation {
   trail: string,
@@ -9,7 +14,7 @@ export interface SnappedLocation {
   lat: number,
   long: number,
 }
-export enum Hazard {
+export enum HazardType {
   tree = "tree",
   flood = "flood",
   other = "other",
@@ -20,7 +25,7 @@ export const NewHazardRequestSchema = {
   type: 'object',
   required: ['hazard', 'location'],
   properties: {
-    hazard: { enum: Object.values(Hazard) },
+    hazard: { enum: Object.values(HazardType) },
     location: {
       type: 'object',
       required: ['trail', 'index', 'lat', 'long'],
@@ -28,8 +33,19 @@ export const NewHazardRequestSchema = {
         trail: { type: 'string' },
         index: { type: 'number' },
         lat: { type: 'number' },
-        long: { type: 'number' }
+        long: { type: 'number' },
       }
     }
+  }
+}
+
+export const HazardSchema = {
+  ...NewHazardRequestSchema,
+  title: "HazardSchema",
+  required: [...NewHazardRequestSchema.required, 'uuid', 'time'],
+  properties: {
+    ...NewHazardRequestSchema.properties,
+    uuid: { type: 'string', format: 'uuid' },
+    time: { type: 'string', format: 'date-time' },
   }
 }
