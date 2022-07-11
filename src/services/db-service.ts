@@ -89,6 +89,7 @@ export default class DbService implements Service {
       text: `SELECT * FROM public.hazards WHERE active;`
     };
     const res = await client.query(query);
+    client.release();
     return res.rows.map(e => ({
       uuid: e.uuid,
       time: e.time,
