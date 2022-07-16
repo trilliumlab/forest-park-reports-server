@@ -37,6 +37,8 @@
   "author": "Elliot Nash <elliotnash@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
+    "@fastify/multipart": "^7.1.0",
+    "@fastify/static": "^6.4.0",
     "app-root-path": "~3.0",
     "fastify": "~4.2",
     "fs-extra": "^10.1.0",

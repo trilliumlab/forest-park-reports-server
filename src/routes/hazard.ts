@@ -21,8 +21,17 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     await Server().database.saveHazard(hazard);
     return hazard;
   });
-  server.get("/active", async (req, rep) => {
+  server.get("/active", async () => {
     return await Server().database.fetchActiveHazards();
+  });
+  server.post("/image", async (req) => {
+    const data = await req.file();
+    const uuid = uuidv1();
+    await Server().images.saveImage(data, uuid);
+    return {uuid};
+  });
+  server.get("/image/:uuid", async (req: FastifyRequest<{Params: {uuid: string}}>, rep) => {
+    await Server().images.sendImage(rep, req.params.uuid);
   });
 };
 export default hazardRoutes;

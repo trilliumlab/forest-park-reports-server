@@ -1,6 +1,9 @@
 # secrets
 config.json
 
+# server specific
+images/
+
 # Logs
 logs
 *.log
