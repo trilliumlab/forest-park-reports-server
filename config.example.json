@@ -5,5 +5,9 @@
   },
   "trails": {
     "reloadInterval": 30
+  },
+  "http": {
+    "host": "0.0.0.0",
+    "port": 8000
   }
 }

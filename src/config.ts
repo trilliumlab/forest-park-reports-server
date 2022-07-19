@@ -11,6 +11,10 @@ export default interface Config {
   },
   trails: {
     reloadInterval: number
+  },
+  http: {
+    host: string,
+    port: number,
   }
 }
 

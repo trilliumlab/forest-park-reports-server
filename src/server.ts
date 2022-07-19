@@ -56,7 +56,7 @@ class ForestParkServer {
   }
   // Runs the server blocking
   async run() {
-    await this.server.listen({port, host: "0.0.0.0"});
+    await this.server.listen({port: this.config.http.port, host: this.config.http.host});
   }
 }
 

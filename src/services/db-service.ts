@@ -100,7 +100,8 @@ export default class DbService implements Service {
         index: e.index,
         lat: e.lat,
         long: e.long
-      }
+      },
+      image: e.image,
     }));
   }
 }
