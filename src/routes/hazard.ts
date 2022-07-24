@@ -3,6 +3,19 @@ import { NewHazardRequest, NewHazardRequestSchema } from "../models/hazard.js";
 import { v1 as uuidv1} from 'uuid';
 import Server from "../server.js";
 
+// array extensions
+declare global {
+  interface Array<T> {
+    forEachParallel(this: Array<T>, func: (item: T) => Promise<void>): Promise<void>
+  }
+}
+Object.defineProperty(Array.prototype, 'forEachParallel', {
+  value: async function<T>(this: Array<T>, func: (item: T) => Promise<void>): Promise<void> {
+    // TypeScript now correctly infers the result from this.map
+    await Promise.all(this.map(item => func(item)));
+  }
+});
+
 const hazardRoutes: FastifyPluginAsync = async (server) => {
   server.post("/new", {
     schema: { body: NewHazardRequestSchema }
@@ -22,7 +35,11 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     return hazard;
   });
   server.get("/active", async () => {
-    return await Server().database.fetchActiveHazards();
+    const hazards = await Server().database.fetchActiveHazards();
+    await hazards.forEachParallel(async (hazard) => {
+      if (!await Server().images.imageExists(hazard.uuid)) hazard.image = null;
+    });
+    return hazards;
   });
   server.post("/image", async (req) => {
     const data = await req.file();
@@ -34,4 +51,5 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     await Server().images.sendImage(rep, req.params.uuid);
   });
 };
+
 export default hazardRoutes;

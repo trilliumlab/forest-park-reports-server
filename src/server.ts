@@ -11,8 +11,6 @@ import fastifyMultipart from "@fastify/multipart";
 import ImageService from "./services/image-service.js";
 import fastifyStatic from "@fastify/static";
 
-const port = 3000;
-
 class ForestParkServer {
   logger: Logger;
   server: FastifyInstance<never>;
