@@ -37,7 +37,7 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
   server.get("/active", async () => {
     const hazards = await Server().database.fetchActiveHazards();
     await hazards.forEachParallel(async (hazard) => {
-      if (!await Server().images.imageExists(hazard.uuid)) hazard.image = null;
+      if (!await Server().images.imageExists(hazard.image)) hazard.image = null;
     });
     return hazards;
   });

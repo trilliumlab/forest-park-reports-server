@@ -21,6 +21,6 @@ export default class ImageService implements Service {
     await reply.sendFile(path.join('/images', uuid.replaceAll("-", "")));
   }
   async imageExists(uuid: string) {
-    return fs.pathExists(path.join('/images', uuid.replaceAll("-", "")));
+    return uuid == null ? false : fs.pathExists(path.join(imageDir, uuid.replaceAll("-", "")));
   }
 }
