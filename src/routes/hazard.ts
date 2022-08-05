@@ -19,7 +19,7 @@ Object.defineProperty(Array.prototype, 'forEachParallel', {
 const hazardRoutes: FastifyPluginAsync = async (server) => {
   server.post("/new", {
     schema: { body: NewHazardRequestSchema }
-  }, async (req: FastifyRequest<{Body: NewHazardRequest}>, rep) => {
+  }, async (req: FastifyRequest<{Body: NewHazardRequest}>) => {
     const hazard = {
       uuid: uuidv1(),
       time: new Date(),
