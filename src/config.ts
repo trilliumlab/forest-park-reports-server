@@ -5,6 +5,10 @@ import fs from 'fs-extra';
 const configFile = path.join(root.path, "config.json");
 
 export default interface Config {
+  http: {
+    host: string,
+    port: number,
+  },
   database: {
     url: string,
     maxConnections: number
@@ -12,10 +16,9 @@ export default interface Config {
   trails: {
     reloadInterval: number
   },
-  http: {
-    host: string,
-    port: number,
-  }
+  images: {
+    cleanInterval: number
+  },
 }
 
 export async function loadConfig(): Promise<Config> {

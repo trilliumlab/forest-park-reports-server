@@ -104,4 +104,16 @@ export default class DbService implements Service {
       image: e.image,
     }));
   }
+  async imageInDatabase(uuid: string): Promise<boolean> {
+    const client = await this.pool.connect();
+    const query = {
+      name: 'image-exists',
+      text: `SELECT * FROM public.hazards WHERE image == $1`,
+      values: [
+        uuid
+      ]
+    }
+    const res = await client.query(query);
+    return res.rowCount != 0;
+  }
 }

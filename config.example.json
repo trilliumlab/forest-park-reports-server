@@ -1,4 +1,8 @@
 {
+  "http": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
   "database": {
     "maxConnections": 20,
     "url": "postgres://forestpark:<password>@<host>:5432/forestpark?application_name=Forest%20Park%20Server"
@@ -6,8 +10,7 @@
   "trails": {
     "reloadInterval": 30
   },
-  "http": {
-    "host": "0.0.0.0",
-    "port": 8000
+  "images": {
+    "cleanInterval": 5
   }
 }

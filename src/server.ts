@@ -24,7 +24,9 @@ class ForestParkServer {
 
   constructor() {
     this.logger = pino();
-    this.server = fastify({logger: this.logger});
+    this.server = fastify({
+      logger: this.logger,
+    });
   }
   // This is where we run any async code that needs
   // to be run before the http server can be started

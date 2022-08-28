@@ -5,6 +5,7 @@ import {pipeline} from "stream/promises";
 import {MultipartFile} from "@fastify/multipart";
 import Service from "../service.js";
 import {FastifyReply} from "fastify";
+import Server from "../server.js";
 
 const imageDir = path.join(root.path, "images");
 
@@ -13,6 +14,7 @@ export default class ImageService implements Service {
     if (!await fs.pathExists(imageDir)) {
       await fs.mkdir(imageDir);
     }
+    setInterval(this.cleanImages.bind(this), Server().config.images.cleanInterval*1000*60);
   }
   async saveImage(data: MultipartFile, uuid: string) {
     await pipeline(data.file, fs.createWriteStream(path.join(imageDir, uuid.replaceAll("-", ""))));
@@ -22,5 +24,13 @@ export default class ImageService implements Service {
   }
   async imageExists(uuid: string) {
     return uuid == null ? false : fs.pathExists(path.join(imageDir, uuid.replaceAll("-", "")));
+  }
+  async cleanImages() {
+    for (const file of await fs.readdir(imageDir)) {
+      if (!await Server().database.imageInDatabase(file)) {
+        const filePath = path.join(imageDir, file);
+        await fs.rm(filePath);
+      }
+    }
   }
 }
