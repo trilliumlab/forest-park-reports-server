@@ -38,6 +38,16 @@ export default class DbService implements Service {
         PRIMARY KEY (uuid)
     );`;
     await client.query(hazardsQuery);
+    // create hazard confirmation query
+    const confirmationQuery = `CREATE TABLE IF NOT EXISTS public.confirmations (
+        uuid uuid NOT NULL,
+        hazard uuid NOT NULL,
+        "time" timestamp with time zone NOT NULL,
+        active boolean NOT NULL,
+        image uuid,
+        PRIMARY KEY (uuid)
+    );`;
+    await client.query(confirmationQuery);
     // remember to always release client when done to free up pool
     client.release();
   }
