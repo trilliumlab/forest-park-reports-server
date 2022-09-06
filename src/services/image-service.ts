@@ -25,7 +25,7 @@ export default class ImageService implements Service {
   async imageExists(uuid: string) {
     return uuid == null ? false : fs.pathExists(path.join(imageDir, uuid.replaceAll("-", "")));
   }
-  taggedImages: string[];
+  taggedImages: string[] = [];
   async cleanImages() {
     for (const file of await fs.readdir(imageDir)) {
       if (!await Server().database.imageInDatabase(file)) {
