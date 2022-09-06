@@ -25,11 +25,19 @@ export default class ImageService implements Service {
   async imageExists(uuid: string) {
     return uuid == null ? false : fs.pathExists(path.join(imageDir, uuid.replaceAll("-", "")));
   }
+  taggedImages: string[];
   async cleanImages() {
     for (const file of await fs.readdir(imageDir)) {
       if (!await Server().database.imageInDatabase(file)) {
-        const filePath = path.join(imageDir, file);
-        await fs.rm(filePath);
+        if (this.taggedImages.includes(file)) {
+          console.log(`deleting tagged image: ${file}`);
+          const filePath = path.join(imageDir, file);
+          await fs.rm(filePath);
+          this.taggedImages.splice(this.taggedImages.indexOf(file), 1);
+        } else {
+          console.log(file + ' is not in database, tagging');
+          this.taggedImages.push(file);
+        }
       }
     }
   }

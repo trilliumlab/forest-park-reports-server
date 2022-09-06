@@ -1,8 +1,9 @@
 import pg from "pg";
-import { Hazard } from "../models/hazard.js";
+import {Hazard, HazardUpdate} from "../models/hazard.js";
 import Server from "../server.js";
 import Service from "../service.js";
 import { TrailInfoRecord } from "./trails-service.js";
+import { v1 as uuidv1} from 'uuid';
 
 export default class DbService implements Service {
   pool: pg.Pool;
@@ -28,18 +29,16 @@ export default class DbService implements Service {
     const hazardsQuery = `CREATE TABLE IF NOT EXISTS public.hazards (
         uuid uuid NOT NULL,
         "time" timestamp with time zone NOT NULL,
-        active boolean NOT NULL,
         hazard text NOT NULL,
         trail uuid NOT NULL,
         index integer NOT NULL,
         lat double precision NOT NULL,
         "long" double precision NOT NULL,
-        image uuid,
         PRIMARY KEY (uuid)
     );`;
     await client.query(hazardsQuery);
     // create hazard confirmation query
-    const confirmationQuery = `CREATE TABLE IF NOT EXISTS public.confirmations (
+    const updatesQuery = `CREATE TABLE IF NOT EXISTS public.updates (
         uuid uuid NOT NULL,
         hazard uuid NOT NULL,
         "time" timestamp with time zone NOT NULL,
@@ -47,7 +46,7 @@ export default class DbService implements Service {
         image uuid,
         PRIMARY KEY (uuid)
     );`;
-    await client.query(confirmationQuery);
+    await client.query(updatesQuery);
     // remember to always release client when done to free up pool
     client.release();
   }
@@ -73,44 +72,127 @@ export default class DbService implements Service {
     const query = {
       name: 'save-hazard',
       text: `INSERT INTO public.hazards (
-        uuid, "time", active, hazard, trail, index, lat, "long", image
+        uuid, "time", hazard, trail, index, lat, "long"
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9
+        $1, $2, $3, $4, $5, $6, $7
       );`,
       values: [
         hazard.uuid,
         hazard.time.toISOString(),
-        hazard.active,
         hazard.hazard,
         hazard.location.trail,
         hazard.location.index,
         hazard.location.lat,
         hazard.location.long,
-        hazard.image,
+      ],
+    };
+    await client.query(query);
+    client.release();
+    await this.updateHazard({
+      uuid: uuidv1(),
+      hazard: hazard.uuid,
+      time: hazard.time,
+      active: true,
+      image: hazard.image,
+    });
+  }
+  async updateHazard(update: HazardUpdate) {
+    const client = await this.pool.connect();
+    const query = {
+       name: 'update-hazard',
+      text: `INSERT INTO public.updates (
+        uuid, hazard, "time", active, image
+      ) VALUES (
+        $1, $2, $3, $4, $5
+      );`,
+      values: [
+        update.uuid,
+        update.hazard,
+        update.time.toISOString(),
+        update.active,
+        update.image,
       ]
     };
     await client.query(query);
     client.release();
   }
-  async fetchActiveHazards(): Promise<Array<Hazard>> {
+  async fetchHazards(active = true): Promise<Array<Hazard>> {
     const client = await this.pool.connect();
     const query = {
       name: 'fetch-active-hazards',
-      text: `SELECT * FROM public.hazards WHERE active;`
+      text: `SELECT * FROM public.hazards;`
+    };
+    const res = await client.query(query);
+    client.release();
+    const hazards = [];
+    await res.rows.forEachParallel(async (e) => {
+      const hazard = {
+        uuid: e.uuid,
+        time: e.time,
+        hazard: e.hazard,
+        location: {
+          trail: e.trail,
+          index: e.index,
+          lat: e.lat,
+          long: e.long
+        }
+      };
+      if (!active) {
+        hazards.push(hazard);
+      } else {
+        const updates = (await this.fetchHazardUpdates(hazard.uuid))
+          .sort((a, b) => b.time.getTime() - a.time.getTime());
+        if (updates.length > 0) {
+          if (updates[0].active) {
+            hazards.push(hazard);
+          }
+        }
+      }
+    });
+    return hazards;
+  }
+  async fetchHazard(uuid: string): Promise<Hazard | null> {
+    const client = await this.pool.connect();
+    const query = {
+      name: 'fetch-hazard',
+      text: `SELECT * FROM public.hazards WHERE uuid = $1`,
+      values: [
+        uuid
+      ],
+    };
+    const res = await client.query(query);
+    client.release();
+    if (res.rowCount == 0) {
+      return null;
+    }
+    return {
+      uuid: res.rows[0].uuid,
+      time: res.rows[0].time,
+      hazard: res.rows[0].hazard,
+      location: {
+        trail: res.rows[0].trail,
+        index: res.rows[0].index,
+        lat: res.rows[0].lat,
+        long: res.rows[0].long
+      }
+    };
+  }
+  async fetchHazardUpdates(hazard: string): Promise<Array<HazardUpdate>> {
+    const client = await this.pool.connect();
+    const query = {
+      name: 'fetch-hazard-updates',
+      text: `SELECT * FROM public.updates WHERE hazard = $1;`,
+      values: [
+        hazard
+      ],
     };
     const res = await client.query(query);
     client.release();
     return res.rows.map(e => ({
       uuid: e.uuid,
+      hazard: e.hazard,
       time: e.time,
       active: e.active,
-      hazard: e.hazard,
-      location: {
-        trail: e.trail,
-        index: e.index,
-        lat: e.lat,
-        long: e.long
-      },
       image: e.image,
     }));
   }
@@ -118,12 +200,17 @@ export default class DbService implements Service {
     const client = await this.pool.connect();
     const query = {
       name: 'image-exists',
-      text: `SELECT * FROM public.hazards WHERE image == $1`,
+      text: `SELECT * FROM public.updates WHERE image = $1`,
       values: [
         uuid
       ]
     }
-    const res = await client.query(query);
-    return res.rowCount != 0;
+    try {
+      const res = await client.query(query);
+      return res.rows.length != 0;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
   }
 }

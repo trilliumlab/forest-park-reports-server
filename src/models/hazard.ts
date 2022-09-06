@@ -1,7 +1,6 @@
 export interface Hazard extends NewHazardRequest {
   uuid: string,
   time: Date,
-  active: boolean,
 }
 
 export interface NewHazardRequest {
@@ -46,6 +45,45 @@ export const HazardSchema = {
   required: [...NewHazardRequestSchema.required, 'uuid', 'time'],
   properties: {
     ...NewHazardRequestSchema.properties,
+    uuid: { type: 'string', format: 'uuid' },
+    time: { type: 'string', format: 'date-time' },
+  }
+}
+
+export interface HazardUpdateRequest {
+  hazard: string,
+  active: boolean,
+  image?: string
+}
+
+export const HazardUpdateRequestSchema = {
+  title: "HazardUpdateRequestSchema",
+  type: 'object',
+  required: [
+    'hazard',
+    'active'
+  ],
+  properties: {
+    hazard: { type: 'string', format: 'uuid' },
+    active: { type: 'boolean' },
+  }
+}
+
+export interface HazardUpdate extends HazardUpdateRequest {
+  uuid: string,
+  time: Date,
+}
+
+export const HazardUpdateSchema = {
+  ...HazardUpdateRequestSchema,
+  title: "HazardUpdateSchema",
+  required: [
+    ...HazardUpdateRequestSchema.required,
+    'uuid',
+    'time',
+  ],
+  properties: {
+    ...HazardUpdateRequestSchema.properties,
     uuid: { type: 'string', format: 'uuid' },
     time: { type: 'string', format: 'date-time' },
   }
