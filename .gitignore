@@ -1,6 +1,9 @@
 # secrets
 config.json
 
+# scripts
+scripts/.last*
+
 # server specific
 images/
 
@@ -24,6 +27,7 @@ build/
 
 # JetBrains IDEs
 .idea/
+*.iml
 
 # Optional npm cache directory
 .npm
