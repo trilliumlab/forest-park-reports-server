@@ -3,152 +3,210 @@ import path from 'path';
 import fs from 'fs-extra';
 import Service from '../service.js';
 import Server from "../server.js";
-import {XMLParser} from "fast-xml-parser";
 
 const trailsDir = path.join(root.path, "trails");
 
-export interface TrailInfo {
-  name: string,
-  uuid: string,
-}
-
-export type TrailInfoRecord = Record<string, TrailInfo>;
-export type GpxRecord = Record<string, Gpx>;
+export type TrailRecord = Record<number, Trail>;
 
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
-  trailInfo: TrailInfoRecord;
-  trailPaths: GpxRecord;
+  trails: TrailRecord;
   async init() {
     await this.loadTrails();
-    await this.loadTrailInfo();
-    setInterval(this.loadTrails.bind(this), Server().config.trails.reloadInterval*1000);
-    setInterval(this.loadTrailInfo.bind(this), Server().config.trails.reloadInterval*1000);
   }
   async loadTrails() {
-    const trailPaths = {};
+    const trails = {};
     for (const file of await fs.readdir(trailsDir)) {
       const filePath = path.join(trailsDir, file);
-      const split = file.replaceAll("-", "").split(".");
-      const uuid = split[0];
+      const split = file.split(".");
+      const system = split[0];
       const extension = split[1];
-      if (extension == "gpx" && (await fs.stat(filePath)).isFile()) {
-        const gpxStr = await fs.readFile(filePath, 'utf-8');
-        trailPaths[uuid] = Gpx.parse(gpxStr);
+      if (extension == "json" && (await fs.stat(filePath)).isFile()) {
+        const osm: OSM = JSON.parse(await fs.readFile(filePath, 'utf-8'));
+        Server().logger.info(`Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${JSON.stringify(osm.osm3s)}`);
+        for (const trailModel of osm.elements) {
+          trails[trailModel.id] = new Trail(system, trailModel);
+        }
       }
     }
-    this.trailPaths = trailPaths;
-  }
-  async loadTrailInfo() {
-    this.trailInfo = await Server().database.fetchTrailInfo();
+    this.trails = trails;
   }
 }
 
-export class Gpx {
-  name: string;
+interface OSM {
+  version: number,
+  generator: string,
+  osm3s: {
+    timestamp_osm_base: string,
+    timestamp_areas_base: string,
+    copyright: string,
+  },
+  elements: TrailModel[]
+}
+
+interface TrailModel {
+  id: number,
+  type: string,
+  tags: TagsModel,
+  bounds: BoundsModel,
+  nodes: number[],
+  geometry: Coordinate[],
+}
+
+interface TagsModel {[key: string]: string}
+
+interface BoundsModel {
+  minlat: number,
+  minlon: number,
+  maxlat: number,
+  maxlon: number,
+}
+
+interface Coordinate {
+  lat: number,
+  lon: number,
+  elev: number,
+}
+
+export class Trail implements TrailModel {
+  system: string;
+  id: number;
   type: string;
-  track: Array<GpxPoint>;
-  private static xmlParser = new XMLParser({
-    ignoreAttributes: false,
-    processEntities: false,
-  })
-  static parse(gpxData: string): Gpx {
-    const gpx = Gpx.xmlParser.parse(gpxData)
-    const trk = gpx.gpx.trk;
-    const name = trk.name;
-    const type = trk.type;
-    const track = trk.trkseg.trkpt.map(e => ({
-      elevation: e['@_ele'],
-      latitude: e['@_lat'],
-      longitude: e['@_lon'],
-    }));
-    return new Gpx(name, type, track);
-  }
-  constructor(name: string, type: string, track: Array<GpxPoint>) {
-    this.name = name;
-    this.type = type;
-    this.track = track;
-  }
-}
+  tags: TagsModel;
+  bounds: BoundsModel;
+  nodes: number[];
+  geometry: Coordinate[];
 
-export class Trail extends Gpx {
-  colors: TrailColor;
-  constructor(gpx: Gpx, colors: TrailColor) {
-    super(gpx.name, gpx.type, gpx.track);
-    this.colors = colors;
+  constructor(
+    system: string,
+    trailModel: TrailModel
+  ) {
+    this.system = system;
+    this.id = trailModel.id;
+    this.type = trailModel.type;
+    this.tags = trailModel.tags;
+    this.bounds = trailModel.bounds;
+    this.nodes = trailModel.nodes;
+    this.geometry = trailModel.geometry;
   }
+
   /*
-    To most effectively transmit polyline data over slow connections, a custom encoding is used to minimize size.
-    This is currently lossless for lat and long, but using some sort of compression would be ideal
-    https://developers.google.com/maps/documentation/utilities/polylinealgorithm
+  To most effectively transmit polyline data over slow connections, a custom encoding is used to minimize size.
+  This is currently lossless for lat and long and lossy for elevation, but using some sort of compression would be ideal
+  https://developers.google.com/maps/documentation/utilities/polylinealgorithm
 
-    Encoding Format:
+  Encoding Format:
 
-    trail name byte length (u16, le)
-    trail name (ascii)
+  system name byte length (u16, le)
+  system name (ascii)
 
-    trail colors byte length (u16, le)
-    for each trail color:
-      trail color index (u16, le)
-      trail color red (u8)
-      trail color green (u8)
-      trail color blue (u8)
+  id (u64, le)
 
-    track byte length (u16, le)
-    for each track point:
-      point latitude (float, le)
-      point longitude (float, le)
-      for first point:
-        point elevation (float, le)
-      for every other point:
-        point elevation delta (i8)
-  */
+  number of tags (u16, le)
+  for each tag:
+    tag key byte length (u8)
+    tag key (ascii)
+    tag value byte length (u8)
+    tag value (ascii)
+
+  minlat (float, le)
+  minlon (float, le)
+  maxlat (float, le)
+  maxlon (float, le)
+
+  number of nodes (u16, le)
+  for each node:
+    node id (u64, le)
+
+  number of coordinates (u16, le)
+  for each coordinate:
+    point latitude (float, le)
+    point longitude (float, le)
+    for first point:
+      point elevation (float, le)
+    for every other point:
+      point elevation delta * 10 (i8)
+*/
   encode(): Buffer {
     // length for name
-    const nameLength = Buffer.byteLength(this.name, 'ascii');
-    let length = 2 + nameLength;
+    const systemLength = Buffer.byteLength(this.system, 'ascii');
+    let length = 2 + systemLength;
 
-    // length for colors
-    const colorArr = this.colors.colorArray();
-    const colorLength = colorArr.length * (2+1+1+1);
-    length += 2 + colorLength;
+    // length for id
+    length += 8;
 
-    // length for track
-    const trackLength = this.track.length * (4+4+1);
-    length += 2 + trackLength + 3;
+    // number of tags
+    length += 2;
+    // length for tags
+    for (const [key, value] of Object.entries(this.tags)) {
+      // key length
+      length += 2 + Buffer.byteLength(key, 'ascii');
+      // value length
+      length += 2 + Buffer.byteLength(value, 'ascii');
+    }
+
+    // length for bounds
+    length += 4*4;
+
+    // length for nodes
+    length += 2;
+    length += this.nodes.length * 8;
+
+    // length for geometry
+    length += 2;
+    length += (this.geometry.length * (4+4+1)) + 3;
 
     // create buffer with calculated length
     const buf = new Buffer(length);
     let pos = 0;
 
     // write trail name
-    pos = buf.writeUInt16LE(nameLength, pos);
-    pos += buf.write(this.name, pos, 'ascii');
+    pos = buf.writeUInt16LE(systemLength, pos);
+    pos += buf.write(this.system, pos, 'ascii');
 
-    // write trail colors
-    pos = buf.writeUInt16LE(colorLength, pos);
-    for (const color of colorArr) {
-      pos = buf.writeUInt16LE(color.index, pos);
-      pos = buf.writeUInt8(color.color.red, pos);
-      pos = buf.writeUInt8(color.color.green, pos);
-      pos = buf.writeUInt8(color.color.blue, pos);
+    // write ID
+    pos = buf.writeBigUInt64LE(BigInt(this.id), pos);
+
+    // write tags
+    pos = buf.writeUInt16LE(Object.keys(this.tags).length, pos);
+    for (const [key, value] of Object.entries(this.tags)) {
+      // write key
+      pos = buf.writeUInt16LE(Buffer.byteLength(key, 'ascii'), pos);
+      pos += buf.write(key, pos, 'ascii');
+      // write value
+      pos = buf.writeUInt16LE(Buffer.byteLength(value, 'ascii'), pos);
+      pos += buf.write(value, pos, 'ascii');
+    }
+
+    // write bounds
+    pos = buf.writeFloatLE(this.bounds.minlat, pos);
+    pos = buf.writeFloatLE(this.bounds.minlon, pos);
+    pos = buf.writeFloatLE(this.bounds.maxlat, pos);
+    pos = buf.writeFloatLE(this.bounds.maxlon, pos);
+
+    // write nodes
+    pos = buf.writeUInt16LE(this.nodes.length, pos);
+    for (const node of this.nodes) {
+      pos = buf.writeBigUInt64LE(BigInt(node), pos);
     }
 
     // write track data
-    pos = buf.writeUInt16LE(trackLength, pos);
+    pos = buf.writeUInt16LE(this.geometry.length, pos);
 
-    for (const [i, point] of this.track.entries()) {
-      pos = buf.writeFloatLE(point.latitude, pos);
-      pos = buf.writeFloatLE(point.longitude, pos);
+    for (const [i, coord] of this.geometry.entries()) {
+      pos = buf.writeFloatLE(coord.lat, pos);
+      pos = buf.writeFloatLE(coord.lon, pos);
       if (i == 0)
-        pos = buf.writeFloatLE(point.elevation, pos);
+        pos = buf.writeFloatLE(coord.elev, pos);
       else
         // minimize drift by doing all math with floats
         // as distance from origin before rounding
         pos = buf.writeInt8(
           Math.round(
-            (point.elevation - this.track[0].elevation)
-            - (this.track[i-1].elevation - this.track[0].elevation)
+            (
+              (coord.elev - this.geometry[0].elev)
+              - (this.geometry[i-1].elev - this.geometry[0].elev)
+            ) * 10
           ),
           pos
         );
@@ -156,48 +214,4 @@ export class Trail extends Gpx {
 
     return buf;
   }
-}
-
-export class TrailColor {
-  baseColor: Color;
-  colors: Array<{index: number, color: Color}>;
-  constructor(baseColor: Color, colors: Array<{index: number, color: Color}> = []) {
-    this.baseColor = baseColor;
-    this.colors = colors;
-  }
-  colorArray(): Array<{index: number, color: Color}> {
-    return [{index: 0, color: this.baseColor}, ...this.colors];
-  }
-}
-
-export class Color {
-  red: number;
-  green: number;
-  blue: number;
-  static rgb(red: number, green: number, blue: number): Color {
-    return new Color(red, green, blue);
-  }
-  static hex(color: number|string): Color {
-    if (typeof color === 'number') {
-      color = color.toString(16);
-    }
-    if (color.length != 6) {
-      throw new Error("Invalid HexCode")
-    }
-    const red = parseInt(color.substring(0, 2), 16);
-    const green = parseInt(color.substring(2, 4), 16);
-    const blue = parseInt(color.substring(4), 16);
-    return new Color(red, green, blue);
-  }
-  private constructor(red: number, green: number, blue: number) {
-    this.red = red;
-    this.green = green;
-    this.blue = blue;
-  }
-}
-
-export interface GpxPoint {
-  elevation: number,
-  latitude: number,
-  longitude: number
 }

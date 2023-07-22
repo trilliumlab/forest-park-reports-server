@@ -1,4 +1,3 @@
-# import argparse
 import requests
 import json
 from pathlib import Path
@@ -53,10 +52,3 @@ def fetch_osm(query_path):
                 with open(script_dir.joinpath('.last_response'), 'w') as lrw:
                     lrw.write(r.text)
                 return j
-
-# osm = r.json()
-# for key in osm.keys():
-# print(key)
-# print(osm['version'])
-# print(osm['generator'])
-# print(osm['osm3s'])

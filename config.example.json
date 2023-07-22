@@ -7,9 +7,6 @@
     "maxConnections": 20,
     "url": "postgres://forestpark:<password>@<host>:5432/forestpark?application_name=Forest%20Park%20Server"
   },
-  "trails": {
-    "reloadInterval": 30
-  },
   "images": {
     "cleanInterval": 5
   }

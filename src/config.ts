@@ -13,9 +13,6 @@ export default interface Config {
     url: string,
     maxConnections: number
   },
-  trails: {
-    reloadInterval: number
-  },
   images: {
     cleanInterval: number
   },

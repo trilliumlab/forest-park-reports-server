@@ -52,7 +52,7 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     };
     // check that the associated trail actually exists
     // TODO return actual error
-    if (!Server().trails.trailInfo[hazard.location.trail]) {
+    if (!Server().trails.trails[String(hazard.location.trail)]) {
       return;
     }
     await Server().database.saveHazard(hazard);

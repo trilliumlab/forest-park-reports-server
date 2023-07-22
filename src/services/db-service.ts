@@ -2,7 +2,6 @@ import pg from "pg";
 import {Hazard, HazardUpdate} from "../models/hazard.js";
 import Server from "../server.js";
 import Service from "../service.js";
-import { TrailInfoRecord } from "./trails-service.js";
 import { v1 as uuidv1} from 'uuid';
 
 export default class DbService implements Service {
@@ -49,23 +48,6 @@ export default class DbService implements Service {
     await client.query(updatesQuery);
     // remember to always release client when done to free up pool
     client.release();
-  }
-  async fetchTrailInfo(): Promise<TrailInfoRecord> {
-    const client = await this.pool.connect();
-    const query = {
-      name: "fetch-trail-info",
-      text: `SELECT * FROM public.trail_info`
-    };
-    const res = await client.query(query);
-    const trailInfo = {};
-    for (const row of res.rows) {
-      trailInfo[row.uuid] = {
-        name: row.name,
-        uuid: row.uuid
-      };
-    }
-    client.release();
-    return trailInfo;
   }
   async saveHazard(hazard: Hazard) {
     const client = await this.pool.connect();

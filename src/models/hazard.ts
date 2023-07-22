@@ -9,7 +9,7 @@ export interface NewHazardRequest {
   image?: string,
 }
 export interface SnappedLocation {
-  trail: string,
+  trail: number,
   index: number,
   lat: number,
   long: number,
@@ -30,7 +30,7 @@ export const NewHazardRequestSchema = {
       type: 'object',
       required: ['trail', 'index', 'lat', 'long'],
       properties: {
-        trail: { type: 'string' },
+        trail: { type: 'number' },
         index: { type: 'number' },
         lat: { type: 'number' },
         long: { type: 'number' },
