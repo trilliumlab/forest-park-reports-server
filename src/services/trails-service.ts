@@ -76,6 +76,7 @@ export class Trail implements TrailModel {
   bounds: BoundsModel;
   nodes: number[];
   geometry: Coordinate[];
+  // TODO calculate metadata like min and max elevation to bounds, incline and decline, and distance
 
   constructor(
     system: string,
@@ -191,6 +192,7 @@ export class Trail implements TrailModel {
     }
 
     // write track data
+    console.log("GEOM LENGTH "+this.geometry.length);
     pos = buf.writeUInt16LE(this.geometry.length, pos);
 
     for (const [i, coord] of this.geometry.entries()) {
@@ -206,7 +208,7 @@ export class Trail implements TrailModel {
             (
               (coord.elev - this.geometry[0].elev)
               - (this.geometry[i-1].elev - this.geometry[0].elev)
-            ) * 10
+            ) * 4
           ),
           pos
         );

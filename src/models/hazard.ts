@@ -10,7 +10,7 @@ export interface NewHazardRequest {
 }
 export interface SnappedLocation {
   trail: number,
-  index: number,
+  node: number,
   lat: number,
   long: number,
 }
@@ -28,10 +28,10 @@ export const NewHazardRequestSchema = {
     hazard: { enum: Object.values(HazardType) },
     location: {
       type: 'object',
-      required: ['trail', 'index', 'lat', 'long'],
+      required: ['trail', 'node', 'lat', 'long'],
       properties: {
         trail: { type: 'number' },
-        index: { type: 'number' },
+        node: { type: 'number' },
         lat: { type: 'number' },
         long: { type: 'number' },
       }

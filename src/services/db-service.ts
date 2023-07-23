@@ -63,7 +63,7 @@ export default class DbService implements Service {
         hazard.time.toISOString(),
         hazard.hazard,
         hazard.location.trail,
-        hazard.location.index,
+        hazard.location.node,
         hazard.location.lat,
         hazard.location.long,
       ],
@@ -153,7 +153,7 @@ export default class DbService implements Service {
       hazard: res.rows[0].hazard,
       location: {
         trail: res.rows[0].trail,
-        index: res.rows[0].index,
+        node: res.rows[0].index,
         lat: res.rows[0].lat,
         long: res.rows[0].long
       }
