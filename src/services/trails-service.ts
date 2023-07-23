@@ -127,7 +127,7 @@ export class Trail implements TrailModel {
       point elevation (float, le)
     for every other point:
       point elevation delta * 10 (i8)
-*/
+  */
   encode(): Buffer {
     // length for name
     const systemLength = Buffer.byteLength(this.system, 'ascii');
@@ -192,7 +192,6 @@ export class Trail implements TrailModel {
     }
 
     // write track data
-    console.log("GEOM LENGTH "+this.geometry.length);
     pos = buf.writeUInt16LE(this.geometry.length, pos);
 
     for (const [i, coord] of this.geometry.entries()) {
@@ -212,6 +211,42 @@ export class Trail implements TrailModel {
           ),
           pos
         );
+    }
+
+    return buf;
+  }
+}
+
+export class TrailList {
+  trails: Trail[];
+  constructor(trails: Trail[]) {
+    this.trails = trails;
+  }
+
+  /*
+  Encodes a list of trails into one buffer
+  format:
+
+  for each trail:
+    trail byte length (u32, le)
+    trail data
+  */
+  encode(): Buffer {
+    const trailBufs = this.trails.map((t) => t.encode());
+    // // calculate length of final buffer
+    // const headerLength = 4 * trailBufs.length;
+    // const dataLength = trailBufs.map((b) => b.length).reduce((a, c) => a+c);
+
+    let buf = new Buffer(0);
+    // let pos = 0;
+
+    console.log("ENCODING");
+
+    for (const trailBuf of trailBufs) {
+      const header = new Buffer(4);
+      console.log("Trail length "+trailBuf.length);
+      header.writeUInt32LE(trailBuf.length);
+      buf = Buffer.concat([buf, header, trailBuf]);
     }
 
     return buf;

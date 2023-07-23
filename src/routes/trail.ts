@@ -1,5 +1,6 @@
 import { FastifyPluginAsync, FastifyRequest } from "fastify";
 import Server from "../server.js";
+import {TrailList} from "../services/trails-service.js";
 
 const trailRoutes: FastifyPluginAsync = async (server) => {
   server.get('/list', async () => {
@@ -13,6 +14,10 @@ const trailRoutes: FastifyPluginAsync = async (server) => {
     } else {
       return Server().decorators.notFound(req, rep);
     }
+  });
+  server.get('/all', async () => {
+    const trailList = new TrailList(Object.values(Server().trails.trails));
+    return trailList.encode();
   });
 };
 export default trailRoutes;
