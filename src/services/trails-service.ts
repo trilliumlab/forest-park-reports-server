@@ -161,7 +161,7 @@ export class Trail implements TrailModel {
     const buf = new Buffer(length);
     let pos = 0;
 
-    // write trail name
+    // write system name
     pos = buf.writeUInt16LE(systemLength, pos);
     pos += buf.write(this.system, pos, 'ascii');
 
@@ -191,7 +191,7 @@ export class Trail implements TrailModel {
       pos = buf.writeBigUInt64LE(BigInt(node), pos);
     }
 
-    // write track data
+    // write geometry data
     pos = buf.writeUInt16LE(this.geometry.length, pos);
 
     for (const [i, coord] of this.geometry.entries()) {

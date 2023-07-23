@@ -1,6 +1,5 @@
 import { FastifyPluginAsync, FastifyRequest } from "fastify";
 import {
-  HazardUpdate,
   HazardUpdateRequest,
   HazardUpdateRequestSchema,
   NewHazardRequest,
@@ -60,6 +59,7 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
   });
   server.get("/active", async () => {
     const hazards = await Server().database.fetchHazards(true);
+    console.log(hazards[0]);
     await hazards.forEachParallel(async (hazard) => {
       if (!await Server().images.imageExists(hazard.image)) hazard.image = null;
     });

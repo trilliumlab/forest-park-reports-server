@@ -17,20 +17,13 @@ export default class DbService implements Service {
   }
   private async setupDatabase() {
     const client = await this.pool.connect();
-    // create trail info table
-    const trailInfoQuery = `CREATE TABLE IF NOT EXISTS public.trail_info (
-      uuid uuid NOT NULL,
-      name text NOT NULL,
-      PRIMARY KEY (uuid)
-    );`;
-    await client.query(trailInfoQuery);
     // create hazards table
     const hazardsQuery = `CREATE TABLE IF NOT EXISTS public.hazards (
         uuid uuid NOT NULL,
         "time" timestamp with time zone NOT NULL,
         hazard text NOT NULL,
-        trail uuid NOT NULL,
-        index integer NOT NULL,
+        trail bigint NOT NULL,
+        node bigint NOT NULL,
         lat double precision NOT NULL,
         "long" double precision NOT NULL,
         PRIMARY KEY (uuid)
@@ -54,7 +47,7 @@ export default class DbService implements Service {
     const query = {
       name: 'save-hazard',
       text: `INSERT INTO public.hazards (
-        uuid, "time", hazard, trail, index, lat, "long"
+        uuid, "time", hazard, trail, node, lat, "long"
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7
       );`,
@@ -113,8 +106,8 @@ export default class DbService implements Service {
         time: e.time,
         hazard: e.hazard,
         location: {
-          trail: e.trail,
-          index: e.index,
+          trail: parseInt(e.trail),
+          node: parseInt(e.node),
           lat: e.lat,
           long: e.long
         }
