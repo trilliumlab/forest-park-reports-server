@@ -240,11 +240,8 @@ export class TrailList {
     let buf = new Buffer(0);
     // let pos = 0;
 
-    console.log("ENCODING");
-
     for (const trailBuf of trailBufs) {
       const header = new Buffer(4);
-      console.log("Trail length "+trailBuf.length);
       header.writeUInt32LE(trailBuf.length);
       buf = Buffer.concat([buf, header, trailBuf]);
     }
