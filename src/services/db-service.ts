@@ -186,6 +186,8 @@ export default class DbService implements Service {
     } catch (e) {
       console.log(e);
       return false;
+    } finally {
+      client.release();
     }
   }
 }
