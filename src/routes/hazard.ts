@@ -1,4 +1,4 @@
-import { FastifyPluginAsync, FastifyRequest } from "fastify";
+import {FastifyPluginAsync, FastifyReply, FastifyRequest} from "fastify";
 import {
   HazardUpdateRequest,
   HazardUpdateRequestSchema,
@@ -22,7 +22,7 @@ Object.defineProperty(Array.prototype, 'forEachParallel', {
 });
 
 const hazardRoutes: FastifyPluginAsync = async (server) => {
-  server.get("/:uuid", async (req: FastifyRequest<{Params: {uuid: string}}>, rep) => {
+  server.get("/:uuid", async (req: FastifyRequest<{Params: {uuid: string}}>) => {
     return await Server().database.fetchHazardUpdates(req.params.uuid);
   });
   server.post("/update", {
@@ -72,7 +72,7 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     return {uuid};
   });
   server.get("/image/:uuid", async (req: FastifyRequest<{Params: {uuid: string}}>, rep) => {
-    await Server().images.sendImage(rep, req.params.uuid);
+    await Server().images.sendImage(rep as FastifyReply<never>, req.params.uuid);
   });
 };
 
