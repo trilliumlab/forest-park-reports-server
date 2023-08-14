@@ -4,20 +4,24 @@ import fs from 'fs-extra';
 import Service from '../service.js';
 import Server from "../server.js";
 
-const trailsDir = path.join(root.path, "trails");
+const waysDir = path.join(root.path, "ways");
+const relationsDir = path.join(root.path, "relations");
+
 
 export type TrailRecord = Record<number, Trail>;
+export type RelationRecord = Record<string, >;
 
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
   trails: TrailRecord;
   async init() {
     await this.loadTrails();
+    await this.loadRelations();
   }
   async loadTrails() {
     const trails = {};
-    for (const file of await fs.readdir(trailsDir)) {
-      const filePath = path.join(trailsDir, file);
+    for (const file of await fs.readdir(waysDir)) {
+      const filePath = path.join(waysDir, file);
       const split = file.split(".");
       const system = split[0];
       const extension = split[1];
@@ -30,6 +34,9 @@ export default class TrailsService implements Service {
       }
     }
     this.trails = trails;
+  }
+  async loadRelations() {
+
   }
 }
 

@@ -1,0 +1,45 @@
+[
+  {
+    "type": "relation",
+    "id": "7745707",
+    "tags": {
+      "distance": "30 mi",
+      "name": "Wildwood Trail",
+      "network": "lwn",
+      "operator": "City of Portland",
+      "operator:type": "public",
+      "operator:wikidata": "Q6106",
+      "operator:wikipedia": "en:Portland, Oregon",
+      "route": "hiking",
+      "symbol": "blue diamond",
+      "type": "route"
+    },
+    "members": [
+      113897248,
+      113897074,
+      113897568,
+      113897600,
+      113897350,
+      113897578,
+      135479074,
+      135479075,
+      739476984,
+      739476983,
+      741577920,
+      149061059,
+      149061058,
+      125433416,
+      113896971,
+      135806554,
+      135806555,
+      113897589,
+      113897163,
+      784369300,
+      784369299,
+      105423454,
+      105423495,
+      541810344,
+      105423684
+    ]
+  }
+]

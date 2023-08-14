@@ -4,7 +4,7 @@
   "description": "A Typescript Project.",
   "type": "module",
   "engines": {
-    "node": ">= 16.13 <17"
+    "node": ">= 16.13 <21"
   },
   "devDependencies": {
     "@types/app-root-path": "~1.2",
