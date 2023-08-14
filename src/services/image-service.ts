@@ -19,7 +19,7 @@ export default class ImageService implements Service {
   async saveImage(data: MultipartFile, uuid: string) {
     await pipeline(data.file, fs.createWriteStream(path.join(imageDir, uuid.replaceAll("-", ""))));
   }
-  async sendImage(reply: FastifyReply<any>, uuid: string) {
+  async sendImage(reply: FastifyReply<never>, uuid: string) {
     await reply.sendFile(path.join('/images', uuid.replaceAll("-", "")));
   }
   async imageExists(uuid: string) {

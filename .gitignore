@@ -33,6 +33,9 @@ build/
 # Optional npm cache directory
 .npm
 
+pnpm-lock.yaml
+package-lock.json
+
 # Optional eslint cache
 .eslintcache
 
