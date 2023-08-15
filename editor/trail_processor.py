@@ -14,13 +14,12 @@ scripts_dir = project_dir.joinpath("scripts")
 cache_dir.mkdir(exist_ok=True)
 
 
-def process_trails(query_path, dest_path, elevation_function):
-    osm = fetch_osm(query_path)
-    process_osm(osm, elevation_function)
-    save_osm(dest_path, osm)
+def load_relations(relation_path):
+    with open(relation_path, 'r') as rel:
+        return json.load(rel)
 
 
-def save_osm(dest_path, osm):
+def save_osm(osm, dest_path):
     with open(dest_path, 'w') as dest:
         json.dump(osm, dest)
 
