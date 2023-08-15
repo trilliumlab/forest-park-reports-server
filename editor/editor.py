@@ -23,8 +23,8 @@ class App(CTk):
 
     UNSELECTED_COLOR = "#3E69CB"
     UNSELECTED_NO_RELATION_COLOR = "#d10003"
-    SELECTED_COLOR = "#e07f00"
-    SELECTED_NO_RELATION_COLOR = "#d1c700"
+    SELECTED_COLOR = "#19b7d7"
+    SELECTED_NO_RELATION_COLOR = "#e07f00"
     SELECTED_RELATION_COLOR = "#731792"
     SELECTED_RELATION_AND_SELECTED_COLOR = "#bc109c"
 
@@ -368,10 +368,24 @@ class App(CTk):
         print("Link Relation Trails not yet implemented")
 
     def add_selection(self):
-        print("Add Selection not yet implemented")
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        for trail in self.selected_trails:
+            if trail not in relation['members']:
+                relation['members'].append(trail)
+        self.selected_trails = OrderedSet()
+        self.update_relation_trails_listbox()
+        self.update_selected_trails_listbox()
+        self.update_path_colors()
 
     def remove_selection(self):
-        print("Remove Selection not yet implemented")
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        for trail in self.selected_trails:
+            if trail in relation['members']:
+                relation['members'].remove(trail)
+        self.selected_trails = OrderedSet()
+        self.update_relation_trails_listbox()
+        self.update_selected_trails_listbox()
+        self.update_path_colors()
 
     def clear_selection(self):
         self.selected_trails = OrderedSet()
