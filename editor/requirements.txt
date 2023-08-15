@@ -1,0 +1,6 @@
+rasterio~=1.3.8
+numpy~=1.25.1
+requests~=2.31.0
+tkintermapview~=1.29
+customtkinter~=5.2.0
+CTkListbox~=0.7

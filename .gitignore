@@ -2,8 +2,7 @@
 config.json
 
 # scripts
-scripts/.last*
-scripts/*.cache
+cache/
 
 # server specific
 images/
