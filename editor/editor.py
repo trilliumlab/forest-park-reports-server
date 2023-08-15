@@ -26,7 +26,7 @@ class App(CTk):
     relations = None
     selected_relation = None
     selected_trails = OrderedSet()
-    paths = []
+    paths = OrderedSet()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -209,7 +209,6 @@ class App(CTk):
         if path.path_color == color:
             # No need to modify path
             return
-        self.paths.remove(path)
         path.delete()
         path = self.map_widget.set_path(
             path.position_list,
@@ -218,13 +217,13 @@ class App(CTk):
             command=self.path_click,
             data=path.data
         )
-        self.paths.append(path)
+        self.paths.add(path)
 
     def load_data(self):
         # Reset data
-        # self.selected_relation = None
-        # self.selected_trails = OrderedSet()
-        # self.paths = []
+        self.selected_relation = None
+        self.selected_trails = OrderedSet()
+        self.paths = OrderedSet()
 
         # Fetch trails from overpass
         trail_system = self.trail_system_menu.get()
@@ -240,12 +239,10 @@ class App(CTk):
         for element in self.osm['elements']:
             points = [(point['lat'], point['lon']) for point in element['geometry']]
             path = self.map_widget.set_path(points, width=4, command=self.path_click, data=element["id"])
-            self.paths.append(path)
-
-        print(list(map(lambda x: x.data, self.paths)))
+            self.paths.add(path)
 
         # Load relations
-        relations_file = relations_dir.joinpath(trail_system+".json")
+        relations_file = relations_dir.joinpath(trail_system + ".json")
         open(relations_file, 'a+')
         self.relations = load_relations(relations_file)
 
