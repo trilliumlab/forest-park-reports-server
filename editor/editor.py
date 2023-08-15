@@ -2,7 +2,9 @@ from customtkinter import *
 from tkintermapview import TkinterMapView
 from CTkListbox import *
 from trail_processor import *
+from ordered_set import OrderedSet
 import importlib
+import webbrowser
 
 overpass_files = {item.stem: item for item in scripts_dir.iterdir() if item.is_file() and item.suffix == ".overpassql"}
 elevation_scripts = {item.stem: item for item in scripts_dir.iterdir() if item.is_file() and item.suffix == ".py"}
@@ -13,20 +15,21 @@ elevation_modules = {}
 class App(CTk):
     APP_NAME = "Relation Editor"
     WIDTH = 1280
-    HEIGHT = 720
+    HEIGHT = 966
 
     PATH_COLOR = "#3E69CB"
-    RELATION_COLOR = "#9b3fd1"
-    SELECTED_COLOR = "#32a852"
+    SELECTED_COLOR = "#e07f00"
+    RELATION_COLOR = "#731792"
+    RELATION_SELECTED_COLOR = "#bc109c"
+
+    osm = None
+    relations = None
+    selected_relation = None
+    selected_trails = OrderedSet()
+    paths = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.osm = None
-        self.relations = None
-        self.selected_relation = None
-        self.paths = set()
-        self.selection = set()
 
         # App Window settings
         self.title(App.APP_NAME)
@@ -58,18 +61,16 @@ class App(CTk):
         # Start hidden
         self.relation_frame.grid_remove()
 
-        self.trail_frame = CTkFrame(master=self, corner_radius=0, fg_color="transparent")
-        self.trail_frame.grid(row=0, column=3, padx=0, pady=0, sticky="nsew")
-        # Start hidden
-        self.trail_frame.grid_remove()
-
         # ============ control_frame ============
         self.control_frame.grid_rowconfigure(5, weight=1)
 
         self.trail_system_label = CTkLabel(self.control_frame, text="Trail System:")
         self.trail_system_label.grid(row=0, sticky="w", column=0, padx=(20, 12), pady=(2, 0))
-        self.trail_system_menu = CTkOptionMenu(self.control_frame, command=self.change_tile_server,
-                                               values=list(overpass_files.keys()))
+        self.trail_system_menu = CTkOptionMenu(
+            self.control_frame,
+            command=self.change_tile_server,
+            values=list(overpass_files.keys())
+        )
         self.trail_system_menu.grid(pady=(0, 0), padx=12, row=1, column=0)
 
         self.load_data_button = CTkButton(master=self.control_frame, text="Load Data", command=self.load_data)
@@ -78,8 +79,11 @@ class App(CTk):
         self.save_ways_button = CTkButton(master=self.control_frame, text="Save Ways", command=self.save_ways)
         self.save_ways_button.grid(pady=(12, 0), padx=12, row=3, column=0)
 
-        self.save_relations_button = CTkButton(master=self.control_frame, text="Save Relations",
-                                               command=self.save_relations)
+        self.save_relations_button = CTkButton(
+            master=self.control_frame,
+            text="Save Relations",
+            command=self.save_relations
+        )
         self.save_relations_button.grid(pady=(12, 0), padx=12, row=4, column=0)
 
         self.tile_server_label = CTkLabel(self.control_frame, text="Tile Server:")
@@ -117,33 +121,63 @@ class App(CTk):
         self.edit_relation_frame = CTkFrame(master=self.relation_frame, corner_radius=0, fg_color="transparent")
         self.edit_relation_frame.grid(row=1, column=0)
 
-        self.new_relation_button = CTkButton(master=self.edit_relation_frame, text="New Relation")
+        self.new_relation_button = CTkButton(
+            master=self.edit_relation_frame, command=self.new_relation, text="New Relation")
         self.new_relation_button.grid(row=0, column=0, padx=(0, 12), pady=0)
 
-        self.delete_relation_button = CTkButton(master=self.edit_relation_frame, text="Delete Relation")
+        self.delete_relation_button = CTkButton(
+            master=self.edit_relation_frame, command=self.delete_relation, text="Delete Relation")
         self.delete_relation_button.grid(row=0, column=1, padx=(0, 12), pady=0)
 
-        self.add_selection_button = CTkButton(master=self.relation_frame, text="Add Selection from Relation", width=294)
-        self.add_selection_button.grid(row=2, column=0, padx=(0, 12), pady=(24, 12))
+        self.link_relation_button = CTkButton(
+            master=self.relation_frame, command=self.link_relation, text="Link Relation Trails", width=294)
+        self.link_relation_button.grid(row=2, column=0, padx=(0, 12), pady=(12, 0))
 
-        self.remove_selection_button = CTkButton(master=self.relation_frame, text="Remove Selection from Relation",
-                                                 width=294)
-        self.remove_selection_button.grid(row=3, column=0, padx=(0, 12), pady=(0, 12))
+        self.selected_trails_frame = CTkFrame(master=self.relation_frame, corner_radius=0, fg_color="transparent")
+        self.selected_trails_frame.grid(row=3, column=0, padx=(0, 12), pady=(24, 0))
+
+        self.relation_trails_listbox = CTkListbox(
+            master=self.selected_trails_frame,
+            command=self.select_relation_trails_listbox,
+            width=117
+        )
+        self.relation_trails_listbox.grid(row=0, column=0, padx=(0, 12))
+
+        self.selected_trails_listbox = CTkListbox(
+            master=self.selected_trails_frame,
+            command=self.select_selected_trails_listbox,
+            width=117
+        )
+        self.selected_trails_listbox.grid(row=0, column=1)
+
+        self.remove_selection_button = CTkButton(
+            master=self.selected_trails_frame, command=self.remove_selection, text="Remove Selection")
+        self.remove_selection_button.grid(row=1, column=0, padx=(0, 12), pady=12)
+
+        self.clear_selection_button = CTkButton(
+            master=self.selected_trails_frame, command=self.clear_selection, text="Clear Selection")
+        self.clear_selection_button.grid(row=1, column=1, pady=12)
+
+        self.add_selection_button = CTkButton(
+            master=self.relation_frame, command=self.add_selection, text="Add Selection", width=294)
+        self.add_selection_button.grid(row=4, column=0, padx=(0, 12), pady=(0, 12))
 
         self.metadata_listbox = CTkListbox(master=self.relation_frame, command=self.select_tag, width=270)
-        self.metadata_listbox.grid(row=4, column=0, padx=(0, 12), pady=12)
+        self.metadata_listbox.grid(row=5, column=0, padx=(0, 12), pady=12)
 
         self.edit_metadata_frame = CTkFrame(master=self.relation_frame, corner_radius=0, fg_color="transparent")
-        self.edit_metadata_frame.grid(row=5, column=0)
+        self.edit_metadata_frame.grid(row=6, column=0)
 
-        self.new_metadata_button = CTkButton(master=self.edit_metadata_frame, text="Add Tag")
+        self.new_metadata_button = CTkButton(master=self.edit_metadata_frame, command=self.add_tag, text="Add Tag")
         self.new_metadata_button.grid(row=0, column=0, padx=(0, 12), pady=0)
 
-        self.delete_metadata_button = CTkButton(master=self.edit_metadata_frame, text="Delete Tag")
+        self.delete_metadata_button = CTkButton(
+            master=self.edit_metadata_frame, command=self.delete_tag, text="Delete Tag")
         self.delete_metadata_button.grid(row=0, column=1, padx=(0, 12), pady=0)
 
-        # ========== trail_frame =============
-        # self.trail
+        self.detect_tags_button = CTkButton(
+            master=self.relation_frame, command=self.detect_tags, text="Autodetect Relation Tags", width=294)
+        self.detect_tags_button.grid(row=7, column=0, padx=(0, 12), pady=(12, 0))
 
         # Set default values
         self.map_widget.set_address("Forest Park, Oregon")
@@ -151,26 +185,47 @@ class App(CTk):
     def select_ways(self, event=None):
         tag = self.tag_entry.get()
         value = self.value_entry.get()
-        print(f'Selecting ways with "{tag}": "{value}"')
+
+        for element in self.osm['elements']:
+            tags = element['tags']
+            if tag in tags:
+                if tags[tag].strip().lower() == value.strip().lower():
+                    self.selected_trails.add(element['id'])
+
+        self.update_path_colors()
+        self.update_selected_trails_listbox()
 
     def select_way(self, path_id):
-        path = next(path for path in self.paths if path.data == path_id)
-        self.change_path_color(path, self.SELECTED_COLOR)
-        self.selection.add(path_id)
+        self.selected_trails.add(path_id)
+        self.update_path_colors()
+        self.update_selected_trails_listbox()
 
     def deselect_way(self, path_id):
-        path = next(path for path in self.paths if path.data == path_id)
-        self.change_path_color(path, self.PATH_COLOR)
-        self.selection.remove(path_id)
+        self.selected_trails.remove(path_id)
+        self.update_path_colors()
+        self.update_selected_trails_listbox()
 
     def change_path_color(self, path, color):
+        if path.path_color == color:
+            # No need to modify path
+            return
         self.paths.remove(path)
         path.delete()
-        path = self.map_widget.set_path(path.position_list, color=color, width=path.width, command=self.path_click,
-                                        data=path.data)
-        self.paths.add(path)
+        path = self.map_widget.set_path(
+            path.position_list,
+            color=color,
+            width=path.width,
+            command=self.path_click,
+            data=path.data
+        )
+        self.paths.append(path)
 
     def load_data(self):
+        # Reset data
+        # self.selected_relation = None
+        # self.selected_trails = OrderedSet()
+        # self.paths = []
+
         # Fetch trails from overpass
         trail_system = self.trail_system_menu.get()
         print(f"Loading trail system {trail_system}")
@@ -185,31 +240,32 @@ class App(CTk):
         for element in self.osm['elements']:
             points = [(point['lat'], point['lon']) for point in element['geometry']]
             path = self.map_widget.set_path(points, width=4, command=self.path_click, data=element["id"])
-            self.paths.add(path)
+            self.paths.append(path)
+
+        print(list(map(lambda x: x.data, self.paths)))
 
         # Load relations
         relations_file = relations_dir.joinpath(trail_system+".json")
         open(relations_file, 'a+')
         self.relations = load_relations(relations_file)
 
-        for i, relation in enumerate(self.relations):
-            relation_name = relation['id']
-            if 'name' in relation['tags']:
-                relation_name += f" ({relation['tags']['name']})"
-            self.relations_listbox.insert(i, relation_name)
+        self.update_relations_listbox()
+        self.update_relation_trails_listbox()
+        self.update_selected_trails_listbox()
+        self.update_metadata_listbox()
 
         # Show sidebar
         self.relation_frame.grid()
 
     def path_click(self, path):
-        if path.data in self.selection:
+        if path.data in self.selected_trails:
             self.deselect_way(path.data)
         else:
             self.select_way(path.data)
 
     def save_ways(self):
         if self.osm is None:
-            print("Trail system must be loaded before saving!")
+            print("Trail system must be loaded before saving ways!")
             return
 
         trail_system = self.trail_system_menu.get()
@@ -239,9 +295,43 @@ class App(CTk):
             print("Trail system has no python module! All elevations will be set to 0.")
 
         process_osm(self.osm, get_elevation)
-        save_osm(self.osm, ways_dir.joinpath(trail_system + ".json"))
+        save_json(self.osm, ways_dir.joinpath(trail_system + ".json"))
 
     def save_relations(self):
+        if self.relations is None:
+            print("Trail system must be loaded before saving relations!")
+            return
+
+        trail_system = self.trail_system_menu.get()
+        save_json(self.relations, relations_dir.joinpath(trail_system + ".json"))
+
+    def new_relation(self):
+        pass
+
+    def delete_relation(self):
+        pass
+
+    def link_relation(self):
+        pass
+
+    def add_selection(self):
+        pass
+
+    def remove_selection(self):
+        pass
+
+    def clear_selection(self):
+        self.selected_trails = OrderedSet()
+        self.update_path_colors()
+        self.update_selected_trails_listbox()
+
+    def add_tag(self):
+        pass
+
+    def delete_tag(self):
+        pass
+
+    def detect_tags(self):
         pass
 
     def select_relation(self, selected):
@@ -253,16 +343,83 @@ class App(CTk):
             return
 
         self.selected_relation = relation['id']
+
+        # Update listboxes
+        self.update_metadata_listbox()
+        self.update_relation_trails_listbox()
+        # Select paths
+        self.update_path_colors()
+
+    def update_metadata_listbox(self):
         # Clear listbox
         for i in range(self.metadata_listbox.size()):
             self.metadata_listbox.delete(0)
-        # Add new tags
-        tags = relation['tags']
+        # Get tags from selected relation
+        tags = {}
+        if self.selected_relation is not None:
+            tags = next(r['tags'] for r in self.relations if r['id'] == self.selected_relation)
+        # Add new tags to listbox
         for i, tag in enumerate(tags):
             self.metadata_listbox.insert(i, f'"{tag}": "{tags[tag]}"')
 
+    def update_relation_trails_listbox(self):
+        # Clear listbox
+        for i in range(self.relation_trails_listbox.size()):
+            self.relation_trails_listbox.delete(0)
+        # Get all trails of selected relation
+        trails = []
+        if self.selected_relation is not None:
+            trails = next(r['members'] for r in self.relations if r['id'] == self.selected_relation)
+        # Add trails from relation
+        for i, trail in enumerate(trails):
+            self.relation_trails_listbox.insert(i, trail)
+
+    def update_selected_trails_listbox(self):
+        # Clear listbox
+        for i in range(self.selected_trails_listbox.size()):
+            self.selected_trails_listbox.delete(0)
+        # Add trails from selection
+        for i, trail in enumerate(self.selected_trails):
+            self.selected_trails_listbox.insert(i, trail)
+
+    def update_relations_listbox(self):
+        # Clear listbox
+        for i in range(self.relations_listbox.size()):
+            self.relations_listbox.delete(0)
+        # Add relations
+        for i, relation in enumerate(self.relations):
+            relation_name = relation['id']
+            if 'name' in relation['tags']:
+                relation_name += f" ({relation['tags']['name']})"
+            self.relations_listbox.insert(i, relation_name)
+
+    def update_path_colors(self):
+        relation_members = []
+        if self.selected_relation is not None:
+            relation_members = next(r['members'] for r in self.relations if r['id'] == self.selected_relation)
+        for path in self.paths:
+            if path.data in relation_members and path.data in self.selected_trails:
+                self.change_path_color(path, self.RELATION_SELECTED_COLOR)
+            elif path.data in relation_members:
+                self.change_path_color(path, self.RELATION_COLOR)
+            elif path.data in self.selected_trails:
+                self.change_path_color(path, self.SELECTED_COLOR)
+            else:
+                self.change_path_color(path, self.PATH_COLOR)
+
     def select_tag(self, selected):
         pass
+
+    def select_relation_trails_listbox(self, selected):
+        self.open_way_page(selected)
+        self.relation_trails_listbox.deselect(self.relation_trails_listbox.curselection())
+
+    def select_selected_trails_listbox(self, selected):
+        self.open_way_page(selected)
+        self.selected_trails_listbox.deselect(self.selected_trails_listbox.curselection())
+
+    def open_way_page(self, way):
+        webbrowser.open(f"https://www.openstreetmap.org/way/{way}", new=0, autoraise=True)
 
     def change_tile_server(self, source: str):
         if source == "OpenStreetMap":

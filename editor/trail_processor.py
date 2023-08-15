@@ -19,9 +19,9 @@ def load_relations(relation_path):
         return json.load(rel)
 
 
-def save_osm(osm, dest_path):
+def save_json(data, dest_path):
     with open(dest_path, 'w') as dest:
-        json.dump(osm, dest)
+        json.dump(data, dest)
 
 
 def process_osm(osm, elevation_function):
@@ -39,8 +39,8 @@ def fetch_osm(query_path):
         system_name = Path(query_path).stem
 
         # cache_path = str(query_path) + ".cache"
-        response_cache = cache_dir.joinpath(system_name+".response.cache")
-        query_cache = cache_dir.joinpath(system_name+".query.cache")
+        response_cache = cache_dir.joinpath(system_name + ".response.cache")
+        query_cache = cache_dir.joinpath(system_name + ".query.cache")
 
         open(response_cache, 'a+')
         open(query_cache, 'a+')
