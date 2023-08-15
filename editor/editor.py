@@ -17,10 +17,12 @@ class App(CTk):
     WIDTH = 1280
     HEIGHT = 966
 
-    PATH_COLOR = "#3E69CB"
+    UNSELECTED_COLOR = "#3E69CB"
+    UNSELECTED_NO_RELATION_COLOR = "#d10003"
     SELECTED_COLOR = "#e07f00"
-    RELATION_COLOR = "#731792"
-    RELATION_SELECTED_COLOR = "#bc109c"
+    SELECTED_NO_RELATION_COLOR = "#d1c700"
+    SELECTED_RELATION_COLOR = "#731792"
+    SELECTED_RELATION_AND_SELECTED_COLOR = "#bc109c"
 
     osm = None
     relations = None
@@ -179,8 +181,10 @@ class App(CTk):
             master=self.relation_frame, command=self.detect_tags, text="Autodetect Relation Tags", width=294)
         self.detect_tags_button.grid(row=7, column=0, padx=(0, 12), pady=(12, 0))
 
-        # Set default values
+        # Configure map widget
         self.map_widget.set_address("Forest Park, Oregon")
+        self.map_widget.add_right_click_menu_command(
+            label="Query Features", command=self.query_features, pass_coords=True)
 
     def select_ways(self, event=None):
         tag = self.tag_entry.get()
@@ -210,6 +214,8 @@ class App(CTk):
             # No need to modify path
             return
         path.delete()
+        self.paths.remove(path)
+
         path = self.map_widget.set_path(
             path.position_list,
             color=color,
@@ -223,6 +229,8 @@ class App(CTk):
         # Reset data
         self.selected_relation = None
         self.selected_trails = OrderedSet()
+        for path in self.paths:
+            path.delete()
         self.paths = OrderedSet()
 
         # Fetch trails from overpass
@@ -250,6 +258,7 @@ class App(CTk):
         self.update_relation_trails_listbox()
         self.update_selected_trails_listbox()
         self.update_metadata_listbox()
+        self.update_path_colors()
 
         # Show sidebar
         self.relation_frame.grid()
@@ -391,18 +400,23 @@ class App(CTk):
             self.relations_listbox.insert(i, relation_name)
 
     def update_path_colors(self):
-        relation_members = []
-        if self.selected_relation is not None:
-            relation_members = next(r['members'] for r in self.relations if r['id'] == self.selected_relation)
-        for path in self.paths:
-            if path.data in relation_members and path.data in self.selected_trails:
-                self.change_path_color(path, self.RELATION_SELECTED_COLOR)
-            elif path.data in relation_members:
-                self.change_path_color(path, self.RELATION_COLOR)
-            elif path.data in self.selected_trails:
-                self.change_path_color(path, self.SELECTED_COLOR)
+        for path in self.paths.copy():
+            relation = next((r['id'] for r in self.relations if path.data in r['members']), None)
+            if relation is None:
+                if path.data in self.selected_trails:
+                    self.change_path_color(path, self.SELECTED_NO_RELATION_COLOR)
+                else:
+                    self.change_path_color(path, self.UNSELECTED_NO_RELATION_COLOR)
+            elif relation == self.selected_relation:
+                if path.data in self.selected_trails:
+                    self.change_path_color(path, self.SELECTED_RELATION_AND_SELECTED_COLOR)
+                else:
+                    self.change_path_color(path, self.SELECTED_RELATION_COLOR)
             else:
-                self.change_path_color(path, self.PATH_COLOR)
+                if path.data in self.selected_trails:
+                    self.change_path_color(path, self.SELECTED_COLOR)
+                else:
+                    self.change_path_color(path, self.UNSELECTED_COLOR)
 
     def select_tag(self, selected):
         pass
@@ -417,6 +431,10 @@ class App(CTk):
 
     def open_way_page(self, way):
         webbrowser.open(f"https://www.openstreetmap.org/way/{way}", new=0, autoraise=True)
+
+    def query_features(self, coords):
+        lat, lon = coords
+        webbrowser.open(f"https://www.openstreetmap.org/query?lat={lat}&lon={lon}", new=0, autoraise=True)
 
     def change_tile_server(self, source: str):
         if source == "OpenStreetMap":
