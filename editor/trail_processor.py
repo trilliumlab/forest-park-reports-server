@@ -26,7 +26,6 @@ def save_json(data, dest_path):
 
 def process_osm(osm, elevation_function):
     for element in osm['elements']:
-        print(f"Processing {element['type']} {element['id']}")
         for point in element['geometry']:
             point['elev'] = elevation_function((point['lon'], point['lat']))
 

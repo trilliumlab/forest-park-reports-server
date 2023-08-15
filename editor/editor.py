@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+
 from customtkinter import *
 from tkintermapview import TkinterMapView
-from CTkListbox import *
+from tkinter.messagebox import *
+from tkinter import PhotoImage
+from CTkListbox import CTkListbox
 from trail_processor import *
 from ordered_set import OrderedSet
 import importlib
@@ -37,6 +41,21 @@ class App(CTk):
         self.title(App.APP_NAME)
         self.geometry(str(App.WIDTH) + "x" + str(App.HEIGHT))
         self.minsize(App.WIDTH, App.HEIGHT)
+        self.wm_iconphoto(False, PhotoImage(file=editor_dir.joinpath("icon.png")))
+
+        # Set menu bar name on macOS
+        if sys.platform == 'darwin':
+            try:
+                from Foundation import NSBundle
+                bundle = NSBundle.mainBundle()
+                print("GOT HERE")
+                if bundle:
+                    print("Got bundle")
+                    info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+                    info['CFBundleName'] = App.APP_NAME
+                    info['CFBundleDisplayName'] = App.APP_NAME
+            except ImportError:
+                print("pyobjc not installed, not setting app name.")
 
         # Configure window closing
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -301,7 +320,9 @@ class App(CTk):
             print("Trail system has no python module! All elevations will be set to 0.")
 
         process_osm(self.osm, get_elevation)
-        save_json(self.osm, ways_dir.joinpath(trail_system + ".json"))
+        ways_path = ways_dir.joinpath(trail_system + ".json")
+        save_json(self.osm, ways_path)
+        print(f"Ways saved to {ways_path}")
 
     def save_relations(self):
         if self.relations is None:
@@ -309,22 +330,48 @@ class App(CTk):
             return
 
         trail_system = self.trail_system_menu.get()
-        save_json(self.relations, relations_dir.joinpath(trail_system + ".json"))
+        relations_path = relations_dir.joinpath(trail_system + ".json")
+        save_json(self.relations, relations_path)
+        print(f"Relations saved to {relations_path}")
 
     def new_relation(self):
-        pass
+        relation_id = 0
+        relation_ids = [r['id'] for r in self.relations]
+        while relation_id in relation_ids:
+            relation_id += 1
+
+        self.relations.append({
+            'type': 'relation',
+            'id': relation_id,
+            'tags': {},
+            'members': []
+        })
+        self.update_relations_listbox()
+        self.relations_listbox.activate(self.relations_listbox.size()-1)
 
     def delete_relation(self):
-        pass
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        if relation is None:
+            showwarning(message="No relation selected!")
+        else:
+            relation_name = relation['id']
+            if 'name' in relation['tags']:
+                relation_name += f" ({relation['tags']['name']})"
+            delete = askokcancel(message=f"Are you sure you want to delete relation {relation_name}?", icon="warning")
+            if delete:
+                self.selected_relation = None
+                self.relations.remove(relation)
+                self.update_relations_listbox()
+                self.update_path_colors()
 
     def link_relation(self):
-        pass
+        print("Link Relation Trails not yet implemented")
 
     def add_selection(self):
-        pass
+        print("Add Selection not yet implemented")
 
     def remove_selection(self):
-        pass
+        print("Remove Selection not yet implemented")
 
     def clear_selection(self):
         self.selected_trails = OrderedSet()
@@ -332,13 +379,13 @@ class App(CTk):
         self.update_selected_trails_listbox()
 
     def add_tag(self):
-        pass
+        print("Add Tag not yet implemented")
 
     def delete_tag(self):
-        pass
+        print("Delete Tag not yet implemented")
 
     def detect_tags(self):
-        pass
+        print("Autodetect Relation Tags not yet implemented")
 
     def select_relation(self, selected):
         # Grab relation from index as selection name is not just ID
@@ -394,7 +441,7 @@ class App(CTk):
             self.relations_listbox.delete(0)
         # Add relations
         for i, relation in enumerate(self.relations):
-            relation_name = relation['id']
+            relation_name = str(relation['id'])
             if 'name' in relation['tags']:
                 relation_name += f" ({relation['tags']['name']})"
             self.relations_listbox.insert(i, relation_name)
