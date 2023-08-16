@@ -25,7 +25,7 @@
   {
     "type": "relation",
     "id": 0,
-    "tags": {},
+    "tags": { "name": "Northwest Firelane 1 Road" },
     "members": [113897041, 113897058, 113897247, 113897501, 113897613]
   }
 ]

@@ -475,10 +475,28 @@ class App(CTk):
         self.update_selected_trails_listbox()
 
     def add_tag(self):
-        print("Add Tag not yet implemented")
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        tag, value = self.tag_editor("", "")
+        relation['tags'][tag] = value
+
+        self.update_metadata_listbox()
+        if tag == "name":
+            index = self.relations_listbox.curselection()
+            self.update_relations_listbox()
+            self.relations_listbox.activate(index)
 
     def delete_tag(self):
-        print("Delete Tag not yet implemented")
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        tags = relation['tags']
+        tag = list(tags.keys())[self.metadata_listbox.curselection()]
+        delete = askokcancel(message=f'Are you sure you want to delete tag "{tag}"?', icon="warning")
+        if delete:
+            del tags[tag]
+            self.update_metadata_listbox()
+            if tag == "name":
+                index = self.relations_listbox.curselection()
+                self.update_relations_listbox()
+                self.relations_listbox.activate(index)
 
     def detect_tags(self):
         print("Autodetect Relation Tags not yet implemented")
@@ -496,20 +514,8 @@ class App(CTk):
         tags = relation['tags']
         initial_tag = list(tags.keys())[self.metadata_listbox.curselection()]
         initial_value = tags[initial_tag]
-        tag_editor = TagEditor(initial_tag, initial_value)
-        tag, value = None, None
-        while True:
-            result = tag_editor.result()
-            if result is None:
-                return
-            tag, value = result
-            if tag in tags and tag != initial_tag:
-                showwarning(message=f'The tag "{tag}" already exists!')
-            elif not tag.strip() or not value.strip():
-                showwarning(message="Tag and value can't be blank or empty!")
-            else:
-                break
-            tag_editor = TagEditor(tag, value)
+
+        tag, value = self.tag_editor(initial_tag, initial_value)
 
         if tag != initial_tag:
             del tags[initial_tag]
@@ -520,6 +526,25 @@ class App(CTk):
             index = self.relations_listbox.curselection()
             self.update_relations_listbox()
             self.relations_listbox.activate(index)
+
+    def tag_editor(self, tag, value):
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        tags = relation['tags']
+
+        initial_tag = tag
+
+        while True:
+            tag_editor = TagEditor(tag, value)
+            result = tag_editor.result()
+            if result is None:
+                return
+            tag, value = result
+            if tag in tags and tag != initial_tag:
+                showwarning(message=f'The tag "{tag}" already exists!')
+            elif not tag.strip() or not value.strip():
+                showwarning(message="Tag and value can't be blank or empty!")
+            else:
+                return tag, value
 
     def select_relation(self, selected):
         # Grab relation from index as selection name is not just ID
