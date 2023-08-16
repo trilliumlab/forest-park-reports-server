@@ -96,6 +96,66 @@ class TagEditor(CTk):
         return self.returning
 
 
+class TagChooser(CTk):
+
+    def __init__(self, tag, option1, option2, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.option1 = option1
+        self.option2 = option2
+
+        self.returning = None
+        self.title('Tag Chooser')
+
+        # main frame
+        self.main_frame = CTkFrame(master=self, corner_radius=0)
+        self.main_frame.pack()
+
+        self.label = CTkLabel(
+            master=self.main_frame, text=f'Conflicting "{tag}" tags found! Choose which one to keep.')
+        self.label.grid(row=0, padx=24, pady=12)
+
+        self.option1_button = CTkButton(master=self.main_frame, text=option1, width=380, command=self.on_option1)
+        self.option1_button.grid(row=1, padx=12)
+
+        self.option2_button = CTkButton(master=self.main_frame, text=option2, width=380, command=self.on_option2)
+        self.option2_button.grid(row=2, padx=12, pady=(12, 24))
+
+        # roughly center the box on screen
+        # for accuracy see: https://stackoverflow.com/a/10018670/1217270
+        self.update_idletasks()
+        xp = (self.winfo_screenwidth() // 2) - (self.winfo_width() // 2)
+        yp = (self.winfo_screenheight() // 2) - (self.winfo_height() // 2)
+        geom = (self.winfo_width(), self.winfo_height(), xp, yp)
+        self.geometry('{0}x{1}+{2}+{3}'.format(*geom))
+        # call self.close_mod when the close button is pressed
+        self.protocol("WM_DELETE_WINDOW", self.close_mod)
+        # a trick to activate the window (on Windows 7)
+        self.deiconify()
+        try:
+            self.grab_set()
+        except Exception as e:
+            print(e)
+
+    def on_option1(self):
+        self.returning = self.option1
+        self.quit()
+
+    def on_option2(self):
+        self.returning = self.option2
+        self.quit()
+
+    # remove this function and the call to protocol
+    # then the close button will act normally
+    def close_mod(self):
+        pass
+
+    def result(self):
+        self.mainloop()
+        self.destroy()
+        return self.returning
+
+
 class App(CTk):
     APP_NAME = "Relation Editor"
     WIDTH = 1280
@@ -476,7 +536,10 @@ class App(CTk):
 
     def add_tag(self):
         relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
-        tag, value = self.tag_editor("", "")
+        result = self.tag_editor("", "")
+        if result is None:
+            return
+        tag, value = result
         relation['tags'][tag] = value
 
         self.update_metadata_listbox()
@@ -499,7 +562,35 @@ class App(CTk):
                 self.relations_listbox.activate(index)
 
     def detect_tags(self):
-        print("Autodetect Relation Tags not yet implemented")
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        tags = relation['tags']
+        ignored_values = {}
+        for element in self.osm['elements']:
+            if element['id'] in relation['members']:
+                for tag in element['tags']:
+                    if tag not in ignored_values:
+                        ignored_values[tag] = []
+                    if tag in tags:
+                        option1 = tags[tag]
+                        option2 = element['tags'][tag]
+                        if option1 != option2:
+                            if option1 in ignored_values[tag]:
+                                tags[tag] = option2
+                            elif option2 in ignored_values[tag]:
+                                tags[tag] = option1
+                            else:
+                                # This means that two trails have different values for the same tag.
+                                tag_chooser = TagChooser(tag, option1, option2)
+                                result = tag_chooser.result()
+                                ignored_values[tag].append(option2 if result == option1 else option1)
+                                tags[tag] = result
+                    else:
+                        tags[tag] = element['tags'][tag]
+
+        self.update_metadata_listbox()
+        index = self.relations_listbox.curselection()
+        self.update_relations_listbox()
+        self.relations_listbox.activate(index)
 
     def select_tag(self, selected):
         current_tag = self.metadata_listbox.curselection()
@@ -515,7 +606,10 @@ class App(CTk):
         initial_tag = list(tags.keys())[self.metadata_listbox.curselection()]
         initial_value = tags[initial_tag]
 
-        tag, value = self.tag_editor(initial_tag, initial_value)
+        result = self.tag_editor(initial_tag, initial_value)
+        if result is None:
+            return
+        tag, value = result
 
         if tag != initial_tag:
             del tags[initial_tag]
