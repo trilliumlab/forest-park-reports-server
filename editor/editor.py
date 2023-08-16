@@ -560,6 +560,7 @@ class App(CTk):
                 index = self.relations_listbox.curselection()
                 self.update_relations_listbox()
                 self.relations_listbox.activate(index)
+        self._last_selected_tag = None
 
     def detect_tags(self):
         relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
