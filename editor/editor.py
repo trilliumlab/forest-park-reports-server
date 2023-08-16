@@ -3,7 +3,7 @@
 from customtkinter import *
 from tkintermapview import TkinterMapView
 from tkinter.messagebox import *
-from tkinter import PhotoImage
+import tkinter as tki
 from CTkListbox import CTkListbox
 from trail_processor import *
 from ordered_set import OrderedSet
@@ -14,6 +14,86 @@ overpass_files = {item.stem: item for item in scripts_dir.iterdir() if item.is_f
 elevation_scripts = {item.stem: item for item in scripts_dir.iterdir() if item.is_file() and item.suffix == ".py"}
 
 elevation_modules = {}
+
+
+class TagEditor(CTk):
+
+    def __init__(self, tag, value, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.returning = None
+        self.title('Tag Editor')
+
+        # main frame
+        self.main_frame = CTkFrame(master=self, corner_radius=0)
+        self.main_frame.pack()
+
+        self.entry_frame = CTkFrame(master=self.main_frame, corner_radius=0, fg_color="transparent")
+        self.entry_frame.grid(row=0, column=0, padx=12, pady=(12, 24))
+
+        self.button_frame = CTkFrame(master=self.main_frame, corner_radius=0, fg_color="transparent")
+        self.button_frame.grid_columnconfigure(index=0, weight=1)
+        self.button_frame.grid(row=1, column=0, padx=12, pady=12, sticky="E")
+
+        # Tag editor
+        self.tag_label = CTkLabel(master=self.entry_frame, text="Tag:")
+        self.tag_label.grid(row=0, column=0, padx=(14, 0), sticky="W")
+
+        self.value_label = CTkLabel(master=self.entry_frame, text="Value:")
+        self.value_label.grid(row=0, column=2, padx=(12, 0), sticky="W")
+
+        self.tag_entry = CTkEntry(master=self.entry_frame)
+        if tag is not None:
+            self.tag_entry.insert(0, tag)
+        self.tag_entry.grid(row=1, column=0, padx=(12, 2))
+
+        self.colon_label = CTkLabel(master=self.entry_frame, text=":", font=(None, 16))
+        self.colon_label.grid(row=1, column=1, pady=(0, 4))
+
+        self.value_entry = CTkEntry(master=self.entry_frame, width=200)
+        if value is not None:
+            self.value_entry.insert(0, value)
+        self.value_entry.grid(row=1, column=2, padx=(10, 12))
+
+        self.cancel_button = CTkButton(master=self.button_frame, text="Cancel", width=100, command=self.on_cancel)
+        self.cancel_button.grid(row=0, column=0, padx=12, sticky="E")
+
+        self.ok_button = CTkButton(master=self.button_frame, text="Ok", width=70, command=self.on_ok)
+        self.ok_button.grid(row=0, column=1, sticky="E")
+
+        # roughly center the box on screen
+        # for accuracy see: https://stackoverflow.com/a/10018670/1217270
+        self.update_idletasks()
+        xp = (self.winfo_screenwidth() // 2) - (self.winfo_width() // 2)
+        yp = (self.winfo_screenheight() // 2) - (self.winfo_height() // 2)
+        geom = (self.winfo_width(), self.winfo_height(), xp, yp)
+        self.geometry('{0}x{1}+{2}+{3}'.format(*geom))
+        # call self.close_mod when the close button is pressed
+        self.protocol("WM_DELETE_WINDOW", self.close_mod)
+        # a trick to activate the window (on Windows 7)
+        self.deiconify()
+        try:
+            self.grab_set()
+        except Exception as e:
+            print(e)
+
+    def on_ok(self):
+        self.returning = (self.tag_entry.get(), self.value_entry.get())
+        self.quit()
+
+    def on_cancel(self):
+        self.returning = None
+        self.quit()
+
+    # remove this function and the call to protocol
+    # then the close button will act normally
+    def close_mod(self):
+        pass
+
+    def result(self):
+        self.mainloop()
+        self.destroy()
+        return self.returning
 
 
 class App(CTk):
@@ -28,20 +108,22 @@ class App(CTk):
     SELECTED_RELATION_COLOR = "#731792"
     SELECTED_RELATION_AND_SELECTED_COLOR = "#bc109c"
 
-    osm = None
-    relations = None
-    selected_relation = None
-    selected_trails = OrderedSet()
-    paths = OrderedSet()
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.osm = None
+        self.relations = None
+        self.selected_relation = None
+        self.selected_trails = OrderedSet()
+        self.paths = OrderedSet()
+
+        self._last_selected_tag = None
 
         # App Window settings
         self.title(App.APP_NAME)
         self.geometry(str(App.WIDTH) + "x" + str(App.HEIGHT))
         self.minsize(App.WIDTH, App.HEIGHT)
-        self.wm_iconphoto(False, PhotoImage(file=editor_dir.joinpath("icon.png")))
+        self.wm_iconphoto(False, tki.PhotoImage(file=editor_dir.joinpath("icon.png")))
 
         # Set menu bar name on macOS
         if sys.platform == 'darwin':
@@ -354,7 +436,7 @@ class App(CTk):
         if relation is None:
             showwarning(message="No relation selected!")
         else:
-            relation_name = relation['id']
+            relation_name = str(relation['id'])
             if 'name' in relation['tags']:
                 relation_name += f" ({relation['tags']['name']})"
             delete = askokcancel(message=f"Are you sure you want to delete relation {relation_name}?", icon="warning")
@@ -400,6 +482,44 @@ class App(CTk):
 
     def detect_tags(self):
         print("Autodetect Relation Tags not yet implemented")
+
+    def select_tag(self, selected):
+        current_tag = self.metadata_listbox.curselection()
+        last_tag = self._last_selected_tag
+        self._last_selected_tag = current_tag
+
+        if last_tag == current_tag:
+            self.edit_tag()
+
+    def edit_tag(self):
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        tags = relation['tags']
+        initial_tag = list(tags.keys())[self.metadata_listbox.curselection()]
+        initial_value = tags[initial_tag]
+        tag_editor = TagEditor(initial_tag, initial_value)
+        tag, value = None, None
+        while True:
+            result = tag_editor.result()
+            if result is None:
+                return
+            tag, value = result
+            if tag in tags and tag != initial_tag:
+                showwarning(message=f'The tag "{tag}" already exists!')
+            elif not tag.strip() or not value.strip():
+                showwarning(message="Tag and value can't be blank or empty!")
+            else:
+                break
+            tag_editor = TagEditor(tag, value)
+
+        if tag != initial_tag:
+            del tags[initial_tag]
+        tags[tag] = value
+
+        self.update_metadata_listbox()
+        if tag == "name":
+            index = self.relations_listbox.curselection()
+            self.update_relations_listbox()
+            self.relations_listbox.activate(index)
 
     def select_relation(self, selected):
         # Grab relation from index as selection name is not just ID
@@ -450,6 +570,7 @@ class App(CTk):
             self.selected_trails_listbox.insert(i, trail)
 
     def update_relations_listbox(self):
+        self._last_selected_tag = None
         # Clear listbox
         for i in range(self.relations_listbox.size()):
             self.relations_listbox.delete(0)
@@ -478,9 +599,6 @@ class App(CTk):
                     self.change_path_color(path, self.SELECTED_COLOR)
                 else:
                     self.change_path_color(path, self.UNSELECTED_COLOR)
-
-    def select_tag(self, selected):
-        pass
 
     def select_relation_trails_listbox(self, selected):
         self.open_way_page(selected)
