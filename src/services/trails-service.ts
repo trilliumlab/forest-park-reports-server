@@ -9,11 +9,12 @@ const relationsDir = path.join(root.path, "relations");
 
 
 export type TrailRecord = Record<number, Trail>;
-export type RelationRecord = Record<string, >;
+export type RelationRecord = Record<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
   trails: TrailRecord;
+  relations: RelationRecord
   async init() {
     await this.loadTrails();
     await this.loadRelations();
@@ -25,7 +26,7 @@ export default class TrailsService implements Service {
       const split = file.split(".");
       const system = split[0];
       const extension = split[1];
-      if (extension == "json" && (await fs.stat(filePath)).isFile()) {
+      if (extension.toLowerCase() == "json" && (await fs.stat(filePath)).isFile()) {
         const osm: OSM = JSON.parse(await fs.readFile(filePath, 'utf-8'));
         Server().logger.info(`Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${JSON.stringify(osm.osm3s)}`);
         for (const trailModel of osm.elements) {
@@ -36,8 +37,29 @@ export default class TrailsService implements Service {
     this.trails = trails;
   }
   async loadRelations() {
-
+    const relations = {};
+    for (const file of await fs.readdir(relationsDir)) {
+      const filePath = path.join(relationsDir, file);
+      const split = file.split(".");
+      // const system = split[0];
+      const extension = split[1];
+      if (extension.toLowerCase() == "json" && (await fs.stat(filePath)).isFile()) {
+        const relationList: Relation[] = JSON.parse(await fs.readFile(filePath, 'utf-8'));
+        Server().logger.info(`Loaded ${relationList.length} relations`);
+        for (const relation of relationList) {
+          relations[relation.id] = relation;
+        }
+      }
+    }
+    this.relations = relations;
   }
+}
+
+interface Relation {
+  type: string,
+  id: number,
+  tags: Record<string, string>,
+  members: number[]
 }
 
 interface OSM {

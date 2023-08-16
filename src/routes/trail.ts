@@ -19,5 +19,8 @@ const trailRoutes: FastifyPluginAsync = async (server) => {
     const trailList = new TrailList(Object.values(Server().trails.trails));
     return trailList.encode();
   });
+  server.get('/relations', async () => {
+    return Object.values(Server().trails.relations)
+  });
 };
 export default trailRoutes;
