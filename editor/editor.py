@@ -176,6 +176,7 @@ class App(CTk):
         self.selected_relation = None
         self.selected_trails = OrderedSet()
         self.paths = OrderedSet()
+        self.markers = OrderedSet()
 
         self._last_selected_tag = None
 
@@ -415,6 +416,7 @@ class App(CTk):
         open(relations_file, 'a+')
         self.relations = load_relations(relations_file)
 
+        self.update_markers()
         self.update_relations_listbox()
         self.update_relation_trails_listbox()
         self.update_selected_trails_listbox()
@@ -507,7 +509,40 @@ class App(CTk):
                 self.update_path_colors()
 
     def link_relation(self):
-        print("Link Relation Trails not yet implemented")
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        trails = [e for e in self.osm['elements'] if e['id'] in relation['members']]
+        sorted = []
+        for trail in trails:
+            if len(sorted) == 0:
+                sorted.append(trail)
+            elif sorted[0]['nodes'][0] == trail['nodes'][0]:
+                # The beginning of the first trail is the same as the beginning of the new trail
+                # Therefore the new trail should be reversed and added to the beginning
+                trail['nodes'].reverse()
+                trail['geometry'].reverse()
+                sorted.insert(0, trail)
+            elif sorted[0]['nodes'][0] == trail['nodes'][-1]:
+                # The beginning of the first trail is the same as the end of the new trail
+                # Therefore the enw trail should be added to the beginning
+                sorted.insert(0, trail)
+            elif sorted[-1]['nodes'][-1] == trail['nodes'][0]:
+                # The end of the last trail is the same as the beginning of the new trail
+                # Therefore the new trail should be added to the end
+                sorted.append(trail)
+            elif sorted[-1]['nodes'][-1] == trail['nodes'][-1]:
+                # The end of the last trail is the same as the end of the new trail
+                # Therefore the new trail should be reversed and added to the end
+                trail['nodes'].reverse()
+                trail['geometry'].reverse()
+                sorted.append(trail)
+            else:
+                showerror(message="Failed to link trails: Trails are not continuous!")
+                return
+        relation['members'] = [t['id'] for t in sorted]
+
+        # Updated UI
+        self.update_markers()
+        self.update_relation_trails_listbox()
 
     def add_selection(self):
         relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
@@ -518,6 +553,7 @@ class App(CTk):
         self.update_relation_trails_listbox()
         self.update_selected_trails_listbox()
         self.update_path_colors()
+        self.update_markers()
 
     def remove_selection(self):
         relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
@@ -528,6 +564,7 @@ class App(CTk):
         self.update_relation_trails_listbox()
         self.update_selected_trails_listbox()
         self.update_path_colors()
+        self.update_markers()
 
     def clear_selection(self):
         self.selected_trails = OrderedSet()
@@ -656,6 +693,7 @@ class App(CTk):
         self.update_relation_trails_listbox()
         # Select paths
         self.update_path_colors()
+        self.update_markers()
 
     def update_metadata_listbox(self):
         # Clear listbox
@@ -719,6 +757,20 @@ class App(CTk):
                     self.change_path_color(path, self.SELECTED_COLOR)
                 else:
                     self.change_path_color(path, self.UNSELECTED_COLOR)
+
+    def update_markers(self):
+        for marker in self.markers:
+            marker.delete()
+            self.markers = OrderedSet()
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        if relation is None:
+            return
+        first = next((e['geometry'][0] for e in self.osm['elements'] if e['id'] == relation['members'][0]), None)
+        last = next((e['geometry'][-1] for e in self.osm['elements'] if e['id'] == relation['members'][-1]), None)
+
+        self.markers.add(self.map_widget.set_marker(last['lat'], last['lon']))
+        self.markers.add(self.map_widget.set_marker(
+            first['lat'], first['lon'], marker_color_outside="#32a852", marker_color_circle="green"))
 
     def select_relation_trails_listbox(self, selected):
         self.open_way_page(selected)
