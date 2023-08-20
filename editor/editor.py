@@ -156,10 +156,26 @@ class TagChooser(CTk):
         return self.returning
 
 
+def set_menubar_name(name):
+    if sys.platform == 'darwin':
+        try:
+            from Foundation import NSBundle
+            bundle = NSBundle.mainBundle()
+            if bundle:
+                info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+                info['CFBundleName'] = name
+                info['CFBundleDisplayName'] = name
+                print(f"Set menubar name {name}")
+        except ImportError:
+            print("pyobjc not installed, not setting app name.")
+    else:
+        print("Menubar name not set: platform must be macOS!")
+
+
 class App(CTk):
     APP_NAME = "Relation Editor"
-    WIDTH = 1280
-    HEIGHT = 966
+    WIDTH = 1380
+    HEIGHT = 1006
 
     UNSELECTED_COLOR = "#3E69CB"
     UNSELECTED_NO_RELATION_COLOR = "#d10003"
@@ -173,6 +189,7 @@ class App(CTk):
 
         self.osm = None
         self.relations = None
+        self.reversed = []
         self.selected_relation = None
         self.selected_trails = OrderedSet()
         self.paths = OrderedSet()
@@ -187,18 +204,7 @@ class App(CTk):
         self.wm_iconphoto(False, tki.PhotoImage(file=editor_dir.joinpath("icon.png")))
 
         # Set menu bar name on macOS
-        if sys.platform == 'darwin':
-            try:
-                from Foundation import NSBundle
-                bundle = NSBundle.mainBundle()
-                print("GOT HERE")
-                if bundle:
-                    print("Got bundle")
-                    info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
-                    info['CFBundleName'] = App.APP_NAME
-                    info['CFBundleDisplayName'] = App.APP_NAME
-            except ImportError:
-                print("pyobjc not installed, not setting app name.")
+        set_menubar_name(App.APP_NAME)
 
         # Configure window closing
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -226,7 +232,7 @@ class App(CTk):
         self.relation_frame.grid_remove()
 
         # ============ control_frame ============
-        self.control_frame.grid_rowconfigure(5, weight=1)
+        self.control_frame.grid_rowconfigure(4, weight=1)
 
         self.trail_system_label = CTkLabel(self.control_frame, text="Trail System:")
         self.trail_system_label.grid(row=0, sticky="w", column=0, padx=(20, 12), pady=(2, 0))
@@ -240,22 +246,15 @@ class App(CTk):
         self.load_data_button = CTkButton(master=self.control_frame, text="Load Data", command=self.load_data)
         self.load_data_button.grid(pady=(12, 0), padx=12, row=2, column=0)
 
-        self.save_ways_button = CTkButton(master=self.control_frame, text="Save Ways", command=self.save_ways)
+        self.save_ways_button = CTkButton(master=self.control_frame, text="Save Data", command=self.save_data)
         self.save_ways_button.grid(pady=(12, 0), padx=12, row=3, column=0)
 
-        self.save_relations_button = CTkButton(
-            master=self.control_frame,
-            text="Save Relations",
-            command=self.save_relations
-        )
-        self.save_relations_button.grid(pady=(12, 0), padx=12, row=4, column=0)
-
         self.tile_server_label = CTkLabel(self.control_frame, text="Tile Server:")
-        self.tile_server_label.grid(row=6, sticky="w", column=0, padx=(20, 12), pady=(12, 0))
+        self.tile_server_label.grid(row=5, sticky="w", column=0, padx=(20, 12), pady=(12, 0))
         self.tile_server_menu = CTkOptionMenu(self.control_frame, command=self.change_tile_server, values=[
             "OpenStreetMap", "Google normal", "Google satellite"
         ])
-        self.tile_server_menu.grid(row=7, column=0, padx=12, pady=(0, 12))
+        self.tile_server_menu.grid(row=6, column=0, padx=12, pady=(0, 12))
 
         # ============ map_frame ===========
         self.map_frame.grid_rowconfigure(1, weight=1)
@@ -269,7 +268,7 @@ class App(CTk):
 
         self.tag_entry = CTkEntry(master=self.map_frame, placeholder_text="tag")
         self.tag_entry.grid(row=0, column=0, sticky="we", padx=(0, 0), pady=12)
-        self.tag_entry.bind("<Return>", self.select_ways)
+        self.tag_entry.bind("<Return>", self.focus_value)
 
         self.value_entry = CTkEntry(master=self.map_frame, placeholder_text="value")
         self.value_entry.grid(row=0, column=1, sticky="we", padx=(12, 0), pady=12)
@@ -297,8 +296,12 @@ class App(CTk):
             master=self.relation_frame, command=self.link_relation, text="Link Relation Trails", width=294)
         self.link_relation_button.grid(row=2, column=0, padx=(0, 12), pady=(12, 0))
 
+        self.link_relation_button = CTkButton(
+            master=self.relation_frame, command=self.reverse_relation, text="Reverse Relation", width=294)
+        self.link_relation_button.grid(row=3, column=0, padx=(0, 12), pady=(12, 0))
+
         self.selected_trails_frame = CTkFrame(master=self.relation_frame, corner_radius=0, fg_color="transparent")
-        self.selected_trails_frame.grid(row=3, column=0, padx=(0, 12), pady=(24, 0))
+        self.selected_trails_frame.grid(row=4, column=0, padx=(0, 12), pady=(24, 0))
 
         self.relation_trails_listbox = CTkListbox(
             master=self.selected_trails_frame,
@@ -324,13 +327,13 @@ class App(CTk):
 
         self.add_selection_button = CTkButton(
             master=self.relation_frame, command=self.add_selection, text="Add Selection", width=294)
-        self.add_selection_button.grid(row=4, column=0, padx=(0, 12), pady=(0, 12))
+        self.add_selection_button.grid(row=5, column=0, padx=(0, 12), pady=(0, 12))
 
         self.metadata_listbox = CTkListbox(master=self.relation_frame, command=self.select_tag, width=270)
-        self.metadata_listbox.grid(row=5, column=0, padx=(0, 12), pady=12)
+        self.metadata_listbox.grid(row=6, column=0, padx=(0, 12), pady=12)
 
         self.edit_metadata_frame = CTkFrame(master=self.relation_frame, corner_radius=0, fg_color="transparent")
-        self.edit_metadata_frame.grid(row=6, column=0)
+        self.edit_metadata_frame.grid(row=7, column=0)
 
         self.new_metadata_button = CTkButton(master=self.edit_metadata_frame, command=self.add_tag, text="Add Tag")
         self.new_metadata_button.grid(row=0, column=0, padx=(0, 12), pady=0)
@@ -341,22 +344,28 @@ class App(CTk):
 
         self.detect_tags_button = CTkButton(
             master=self.relation_frame, command=self.detect_tags, text="Autodetect Relation Tags", width=294)
-        self.detect_tags_button.grid(row=7, column=0, padx=(0, 12), pady=(12, 0))
+        self.detect_tags_button.grid(row=8, column=0, padx=(0, 12), pady=(12, 0))
 
         # Configure map widget
         self.map_widget.set_address("Forest Park, Oregon")
         self.map_widget.add_right_click_menu_command(
             label="Query Features", command=self.query_features, pass_coords=True)
 
-    def select_ways(self, event=None):
-        tag = self.tag_entry.get()
-        value = self.value_entry.get()
+    def focus_value(self, event=None):
+        self.value_entry.focus_set()
 
-        for element in self.osm['elements']:
-            tags = element['tags']
+    def select_ways(self, event=None):
+        tag = self.tag_entry.get().strip()
+        value = self.value_entry.get().strip().lower()
+
+        for trail in self.osm['elements']:
+            if tag.lower() == 'id':
+                if str(trail['id']) == value:
+                    self.selected_trails.add(trail['id'])
+            tags = trail['tags']
             if tag in tags:
-                if tags[tag].strip().lower() == value.strip().lower():
-                    self.selected_trails.add(element['id'])
+                if tags[tag].strip().lower() == value:
+                    self.selected_trails.add(trail['id'])
 
         self.update_path_colors()
         self.update_selected_trails_listbox()
@@ -395,8 +404,12 @@ class App(CTk):
             path.delete()
         self.paths = OrderedSet()
 
-        # Fetch trails from overpass
         trail_system = self.trail_system_menu.get()
+
+        # Load reversed
+        self.reversed = load_json(reversed_dir.joinpath(trail_system + ".json"), [])
+
+        # Fetch trails from overpass
         print(f"Loading trail system {trail_system}")
         self.osm = fetch_osm(overpass_files[trail_system])
 
@@ -405,6 +418,12 @@ class App(CTk):
         print("generator: ", self.osm['generator'])
         print("osm3s: ", self.osm['osm3s'])
 
+        # Reverse reversed trails
+        for element in self.osm['elements']:
+            if element['id'] in self.reversed:
+                element['geometry'].reverse()
+                element['nodes'].reverse()
+
         # Convert overpass data to paths
         for element in self.osm['elements']:
             points = [(point['lat'], point['lon']) for point in element['geometry']]
@@ -412,10 +431,9 @@ class App(CTk):
             self.paths.add(path)
 
         # Load relations
-        relations_file = relations_dir.joinpath(trail_system + ".json")
-        open(relations_file, 'a+')
-        self.relations = load_relations(relations_file)
+        self.relations = load_json(relations_dir.joinpath(trail_system + ".json"), {})
 
+        # Update UI
         self.update_markers()
         self.update_relations_listbox()
         self.update_relation_trails_listbox()
@@ -432,11 +450,16 @@ class App(CTk):
         else:
             self.select_way(path.data)
 
-    def save_ways(self):
+    def save_data(self):
         if self.osm is None:
-            print("Trail system must be loaded before saving ways!")
+            print("Trail system must be loaded before saving data!")
             return
 
+        self.save_ways()
+        self.save_relations()
+        self.save_reversed()
+
+    def save_ways(self):
         trail_system = self.trail_system_menu.get()
 
         # Fallback method that returns 0
@@ -469,14 +492,16 @@ class App(CTk):
         print(f"Ways saved to {ways_path}")
 
     def save_relations(self):
-        if self.relations is None:
-            print("Trail system must be loaded before saving relations!")
-            return
-
         trail_system = self.trail_system_menu.get()
         relations_path = relations_dir.joinpath(trail_system + ".json")
         save_json(self.relations, relations_path)
         print(f"Relations saved to {relations_path}")
+
+    def save_reversed(self):
+        trail_system = self.trail_system_menu.get()
+        reversed_path = reversed_dir.joinpath(trail_system + ".json")
+        save_json(self.reversed, reversed_path)
+        print(f"Reversed saved to {reversed_path}")
 
     def new_relation(self):
         relation_id = 0
@@ -508,39 +533,88 @@ class App(CTk):
                 self.update_relations_listbox()
                 self.update_path_colors()
 
+    def reverse_relation(self):
+        relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
+        relation['members'].reverse()
+        trails = [e for e in self.osm['elements'] if e['id'] in relation['members']]
+
+        for trail in trails:
+            if trail['id'] in self.reversed:
+                self.reversed.remove(trail['id'])
+            else:
+                self.reversed.append(trail['id'])
+
+            trail['nodes'].reverse()
+            trail['geometry'].reverse()
+
+        # Updated UI
+        self.update_markers()
+        self.update_relation_trails_listbox()
+
     def link_relation(self):
         relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)
         trails = [e for e in self.osm['elements'] if e['id'] in relation['members']]
-        sorted = []
-        for trail in trails:
-            if len(sorted) == 0:
-                sorted.append(trail)
-            elif sorted[0]['nodes'][0] == trail['nodes'][0]:
-                # The beginning of the first trail is the same as the beginning of the new trail
-                # Therefore the new trail should be reversed and added to the beginning
-                trail['nodes'].reverse()
-                trail['geometry'].reverse()
-                sorted.insert(0, trail)
-            elif sorted[0]['nodes'][0] == trail['nodes'][-1]:
-                # The beginning of the first trail is the same as the end of the new trail
-                # Therefore the enw trail should be added to the beginning
-                sorted.insert(0, trail)
-            elif sorted[-1]['nodes'][-1] == trail['nodes'][0]:
-                # The end of the last trail is the same as the beginning of the new trail
-                # Therefore the new trail should be added to the end
-                sorted.append(trail)
-            elif sorted[-1]['nodes'][-1] == trail['nodes'][-1]:
-                # The end of the last trail is the same as the end of the new trail
-                # Therefore the new trail should be reversed and added to the end
-                trail['nodes'].reverse()
-                trail['geometry'].reverse()
-                sorted.append(trail)
-            else:
-                showerror(message="Failed to link trails: Trails are not continuous!")
-                return
-        relation['members'] = [t['id'] for t in sorted]
+        if len(trails) == 0:
+            print("Relations must have at least one trail to link!")
+            return
+        sorted_trails = [trails[0]]
 
-        # Updated UI
+        while len(sorted_trails) < len(trails):
+            sorted_first_node = sorted_trails[0]['nodes'][0]
+            sorted_last_node = sorted_trails[-1]['nodes'][-1]
+            initial_len = len(sorted_trails)
+
+            for trail in trails:
+                # Don't add trails that are already added
+                if trail in sorted_trails:
+                    continue
+                trail_first_node = trail['nodes'][0]
+                trail_last_node = trail['nodes'][-1]
+                if sorted_first_node == trail_first_node:
+                    # The beginning of the first trail is the same as the beginning of the new trail
+                    # Therefore the new trail should be reversed and added to the beginning
+                    if trail['id'] in self.reversed:
+                        self.reversed.remove(trail['id'])
+                    else:
+                        self.reversed.append(trail['id'])
+
+                    trail['nodes'].reverse()
+                    trail['geometry'].reverse()
+                    sorted_trails.insert(0, trail)
+                    break
+                elif sorted_first_node == trail_last_node:
+                    # The beginning of the first trail is the same as the end of the new trail
+                    # Therefore the enw trail should be added to the beginning
+                    sorted_trails.insert(0, trail)
+                    break
+                elif sorted_last_node == trail_first_node:
+                    # The end of the last trail is the same as the beginning of the new trail
+                    # Therefore the new trail should be added to the end
+                    sorted_trails.append(trail)
+                    break
+                elif sorted_last_node == trail_last_node:
+                    # The end of the last trail is the same as the end of the new trail
+                    # Therefore the new trail should be reversed and added to the end
+                    if trail['id'] in self.reversed:
+                        self.reversed.remove(trail['id'])
+                    else:
+                        self.reversed.append(trail['id'])
+
+                    trail['nodes'].reverse()
+                    trail['geometry'].reverse()
+                    sorted_trails.append(trail)
+                    break
+
+            if len(sorted_trails) == initial_len:
+                # If we get here, it means we didn't find any trails with shared nodes
+                showerror(message=f"Failed to link trails: Trails are not continuous! (Continuous segment: "
+                                  f"{sorted_trails[0]['id']}-{sorted_trails[-1]['id']})")
+                return
+
+        # Set the relation members to the sorted trails
+        relation['members'] = [t['id'] for t in sorted_trails]
+
+        # Update UI
         self.update_markers()
         self.update_relation_trails_listbox()
 

@@ -9,13 +9,20 @@ project_dir = editor_dir.parent
 cache_dir = project_dir.joinpath("cache")
 ways_dir = project_dir.joinpath("ways")
 relations_dir = project_dir.joinpath("relations")
+reversed_dir = project_dir.joinpath("reversed")
 scripts_dir = project_dir.joinpath("scripts")
 
 cache_dir.mkdir(exist_ok=True)
 
 
-def load_relations(relation_path):
-    with open(relation_path, 'r') as rel:
+def load_json(json_path, default):
+    try:
+        with open(json_path, 'r') as rel:
+            return json.load(rel)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        print(f"Failed to load {json_path}, storing default value!")
+        save_json(default, json_path)
+    with open(json_path, 'r') as rel:
         return json.load(rel)
 
 
