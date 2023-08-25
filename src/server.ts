@@ -52,7 +52,7 @@ class ForestParkServer {
     this.server.register(fastifyStatic.default, {root: root.path});
   }
   async registerRoutes() {
-    this.server.register(apiRoutes, {prefix: '/api/v1'});
+    this.server.register(apiRoutes, {prefix: '/'});
   }
   // Runs the server blocking
   async run() {
