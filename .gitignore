@@ -1,6 +1,9 @@
 # secrets
 config.json
 
+# Binary data
+data/
+
 # scripts
 cache/
 
