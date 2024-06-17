@@ -25,6 +25,7 @@ coverage
 build/
 
 # VS Code
+.vs
 .vscode
 !.vscode/tasks.js
 
