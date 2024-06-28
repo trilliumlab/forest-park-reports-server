@@ -187,7 +187,7 @@ export class Trail implements TrailModel {
     length += (this.geometry.length * (4+4+1)) + 3;
 
     // create buffer with calculated length
-    const buf = new Buffer(length);
+    const buf = Buffer.alloc(length);
     let pos = 0;
 
     // write system name
@@ -261,16 +261,19 @@ export class TrailList {
     trail data
   */
   encode(): Buffer {
-    const trailBufs = this.trails.map((t) => t.encode());
+    const trailBufs = this.trails.map((t) => {
+      console.log("Starting trail encoding");
+      return t.encode();
+    });
     // // calculate length of final buffer
     // const headerLength = 4 * trailBufs.length;
     // const dataLength = trailBufs.map((b) => b.length).reduce((a, c) => a+c);
 
-    let buf = new Buffer(0);
+    let buf = Buffer.alloc(0);
     // let pos = 0;
 
     for (const trailBuf of trailBufs) {
-      const header = new Buffer(4);
+      const header = Buffer.alloc(4);
       header.writeUInt32LE(trailBuf.length);
       buf = Buffer.concat([buf, header, trailBuf]);
     }
