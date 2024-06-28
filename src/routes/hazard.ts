@@ -65,11 +65,14 @@ const hazardRoutes: FastifyPluginAsync = async (server) => {
     });
     return hazards;
   });
-  server.post("/image", async (req) => {
+  server.put("/image/:uuid", async (req: FastifyRequest<{Params: {uuid: string}}>, rep) => {
     const data = await req.file();
-    const uuid = uuidv1();
-    await Server().images.saveImage(data, uuid);
-    return {uuid};
+    const uuid = req.params.uuid;
+    if (await Server().images.imageExists(uuid)) {
+      rep.code(409);
+    } else {
+      await Server().images.saveImage(data, uuid);
+    }
   });
   server.get("/image/:uuid", async (req: FastifyRequest<{Params: {uuid: string}}>, rep) => {
     await Server().images.sendImage(rep as FastifyReply<never>, req.params.uuid);
