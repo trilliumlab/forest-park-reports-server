@@ -33,8 +33,9 @@ export default class DbService implements Service {
     const updatesQuery = `CREATE TABLE IF NOT EXISTS public.updates (
         uuid uuid NOT NULL,
         hazard uuid NOT NULL,
-        "time" timestamp with time zone NOT NULL,
+        "time" timestamptz NOT NULL,
         active boolean NOT NULL,
+        blur_hash text,
         image uuid,
         PRIMARY KEY (uuid)
     );`;
@@ -68,6 +69,7 @@ export default class DbService implements Service {
       hazard: hazard.uuid,
       time: hazard.time,
       active: true,
+      blurHash: hazard.blurHash,
       image: hazard.image,
     });
   }
@@ -76,15 +78,16 @@ export default class DbService implements Service {
     const query = {
        name: 'update-hazard',
       text: `INSERT INTO public.updates (
-        uuid, hazard, "time", active, image
+        uuid, hazard, "time", active, blur_hash, image
       ) VALUES (
-        $1, $2, $3, $4, $5
+        $1, $2, $3, $4, $5, $6
       );`,
       values: [
         update.uuid,
         update.hazard,
         update.time.toISOString(),
         update.active,
+        update.blurHash,
         update.image,
       ]
     };
@@ -168,6 +171,7 @@ export default class DbService implements Service {
       hazard: e.hazard,
       time: e.time,
       active: e.active,
+      blurHash: e.blur_hash,
       image: e.image,
     }));
   }

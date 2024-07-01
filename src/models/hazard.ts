@@ -6,6 +6,7 @@ export interface Hazard extends NewHazardRequest {
 export interface NewHazardRequest {
   hazard: HazardType,
   location: SnappedLocation,
+  blurHash?: string,
   image?: string,
 }
 export interface SnappedLocation {
@@ -53,6 +54,7 @@ export const HazardSchema = {
 export interface HazardUpdateRequest {
   hazard: string,
   active: boolean,
+  blurHash?: string,
   image?: string
 }
 
