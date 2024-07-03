@@ -262,7 +262,6 @@ export class TrailList {
   */
   encode(): Buffer {
     const trailBufs = this.trails.map((t) => {
-      console.log("Starting trail encoding");
       return t.encode();
     });
     // // calculate length of final buffer
