@@ -1,8 +1,5 @@
-import { fastify, FastifyInstance } from "fastify";
+import { Hono } from "hono";
 import * as log from '@std/log';
-import fastifyMultipart from "@fastify/multipart";
-import fastifyStatic from "@fastify/static";
-
 import Config, { loadConfig } from "./config.ts";
 import Decorators from "./decorators.ts";
 import apiRoutes from './routes/api.ts';
@@ -14,7 +11,7 @@ const rootDir = import.meta.resolve("../").substring(7);
 
 class ForestParkServer {
   logger: log.Logger;
-  server: FastifyInstance<never>;
+  server: Hono;
   // server config
   config!: Config;
   // construct services
@@ -25,15 +22,8 @@ class ForestParkServer {
 
   constructor() {
     log.setup({})
-    // HACK: fastify uses pino under the hood, so we need to add missing methods
     this.logger = log.getLogger();
-    log.Logger.prototype.trace = log.Logger.prototype.debug;
-    log.Logger.prototype.fatal = log.Logger.prototype.critical;
-    log.Logger.prototype.child = () => this.logger;
-
-    this.server = fastify({
-      logger: this.logger,
-    });
+    this.server = new Hono();
   }
   // This is where we run any async code that needs
   // to be run before the http server can be started
@@ -46,7 +36,7 @@ class ForestParkServer {
     await this.registerMiddleware();
     // routes and decorators can depend on service initialization and are registered at the end.
     this.decorators.register(this.server);
-    await this.registerRoutes();
+    this.registerRoutes();
   }
   async initServices() {
     // initialize the database service first as other services may use the database
@@ -55,15 +45,19 @@ class ForestParkServer {
     await this.images.init();
   }
   async registerMiddleware() {
-    this.server.register(fastifyMultipart.default);
-    this.server.register(fastifyStatic.default, {root: rootDir});
+    // this.server.register(fastifyMultipart.default);
+    // this.server.register(fastifyStatic.default, {root: rootDir});
   }
-  async registerRoutes() {
-    this.server.register(apiRoutes, {prefix: '/'});
+  registerRoutes() {
+    this.server.route('/', apiRoutes());
   }
   // Runs the server blocking
-  async run() {
-    await this.server.listen({port: this.config.http.port, host: this.config.http.host});
+  run() {
+    Deno.serve({
+      port: this.config.http.port,
+      hostname: this.config.http.host,
+      handler: this.server.fetch
+    });
   }
 }
 

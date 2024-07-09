@@ -1,10 +1,16 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { Hono, Context } from "hono";
 
 export default class Decorators {
-  register(server: FastifyInstance<never>) {
-    server.setNotFoundHandler(this.notFound);
+  register(server: Hono) {
+    server.notFound(this.notFound);
   }
-  notFound(_request: FastifyRequest, reply: FastifyReply) {
-    reply.code(404).send({code: 404, error: "Resource Not Found"});
+  notFound(ctx: Context) {
+    return ctx.json({code: 404, error: "Resource Not Found"}, 404);
+  }
+  badRequest(ctx: Context, message?: string) {
+    return ctx.json({code: 400, error: message ?? "Bad Request"}, 400);
+  }
+  conflict(ctx: Context, message?: string) {
+    return ctx.json({code: 409, error: message ?? "Conflict"}, 409);
   }
 }
