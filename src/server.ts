@@ -1,21 +1,22 @@
 import { fastify, FastifyInstance } from "fastify";
-import { pino, Logger } from 'pino';
-
-import root from 'app-root-path';
-import Config, { loadConfig } from "./config.js";
-import Decorators from "./decorators.js";
-import apiRoutes from './routes/api.js';
-import DbService from "./services/db-service.js";
-import TrailsService from "./services/trails-service.js";
+import * as log from '@std/log';
 import fastifyMultipart from "@fastify/multipart";
-import ImageService from "./services/image-service.js";
 import fastifyStatic from "@fastify/static";
 
+import Config, { loadConfig } from "./config.ts";
+import Decorators from "./decorators.ts";
+import apiRoutes from './routes/api.ts';
+import DbService from "./services/db-service.ts";
+import TrailsService from "./services/trails-service.ts";
+import ImageService from "./services/image-service.ts";
+
+const rootDir = import.meta.resolve("../").substring(7);
+
 class ForestParkServer {
-  logger: Logger;
+  logger: log.Logger;
   server: FastifyInstance<never>;
   // server config
-  config: Config
+  config!: Config;
   // construct services
   trails = new TrailsService();
   images = new ImageService();
@@ -23,7 +24,13 @@ class ForestParkServer {
   decorators = new Decorators();
 
   constructor() {
-    this.logger = pino();
+    log.setup({})
+    // HACK: fastify uses pino under the hood, so we need to add missing methods
+    this.logger = log.getLogger();
+    log.Logger.prototype.trace = log.Logger.prototype.debug;
+    log.Logger.prototype.fatal = log.Logger.prototype.critical;
+    log.Logger.prototype.child = () => this.logger;
+
     this.server = fastify({
       logger: this.logger,
     });
@@ -49,7 +56,7 @@ class ForestParkServer {
   }
   async registerMiddleware() {
     this.server.register(fastifyMultipart.default);
-    this.server.register(fastifyStatic.default, {root: root.path});
+    this.server.register(fastifyStatic.default, {root: rootDir});
   }
   async registerRoutes() {
     this.server.register(apiRoutes, {prefix: '/'});
@@ -60,7 +67,7 @@ class ForestParkServer {
   }
 }
 
-let server: ForestParkServer = null;
+let server: ForestParkServer | null;
 export default function Server() {
   if (server) {
     return server;

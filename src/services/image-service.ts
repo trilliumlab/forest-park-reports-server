@@ -1,23 +1,21 @@
-import root from 'app-root-path';
-import path from 'path';
-import fs from 'fs-extra';
-import {pipeline} from "stream/promises";
-import {MultipartFile} from "@fastify/multipart";
-import Service from "../service.js";
+import * as fs from '@std/fs';
+import * as path from '@std/path';
+import {MultipartFile} from "fastify/multipart";
+import Service from "../service.ts";
 import {FastifyReply} from "fastify";
-import Server from "../server.js";
+import Server from "../server.ts";
 
-const imageDir = path.join(root.path, "images");
+const imageDir = import.meta.resolve("../../images").substring(7);
 
 export default class ImageService implements Service {
   async init() {
-    if (!await fs.pathExists(imageDir)) {
-      await fs.mkdir(imageDir);
+    if (!await fs.exists(imageDir)) {
+      await fs.ensureDir(imageDir);
     }
     setInterval(this.cleanImages.bind(this), Server().config.images.cleanInterval*1000*60);
   }
   async saveImage(data: MultipartFile, uuid: string) {
-    await pipeline(data.file, fs.createWriteStream(path.join(imageDir, uuid.replaceAll("-", ""))));
+    // await pipeline(data.file, fs.createWriteStream(path.join(imageDir, uuid.replaceAll("-", ""))));
   }
   async sendImage(reply: FastifyReply<never>, uuid: string) {
     await reply.sendFile(path.join('/images', uuid.replaceAll("-", "")));

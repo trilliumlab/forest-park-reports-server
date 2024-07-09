@@ -4,9 +4,9 @@ import {
   HazardUpdateRequestSchema,
   NewHazardRequest,
   NewHazardRequestSchema
-} from "../models/hazard.js";
-import { v1 as uuidv1} from 'uuid';
-import Server from "../server.js";
+} from "../models/hazard.ts";
+import { v1 as uuidv1} from '@std/uuid';
+import Server from "../server.ts";
 
 // array extensions
 declare global {

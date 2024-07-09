@@ -1,24 +1,25 @@
-import pg from "pg";
-import {Hazard, HazardUpdate} from "../models/hazard.js";
-import Server from "../server.js";
-import Service from "../service.js";
-import { v1 as uuidv1} from 'uuid';
+import * as pg from "postgres";
+import {Hazard, HazardUpdate} from "../models/hazard.ts";
+import Server from "../server.ts";
+import Service from "../service.ts";
+import { v1 as uuidv1 } from '@std/uuid';
 
 export default class DbService implements Service {
-  pool: pg.Pool;
+  pool!: pg.Pool;
   async init() {
     // we create the pool in init because the config has been initialized by here
-    this.pool = new pg.Pool({
-      max: Server().config.database.maxConnections,
-      connectionString: Server().config.database.url
-    });
+    this.pool = new pg.Pool(
+      Server().config.database,
+      Server().config.database.maxConnections,
+      true,
+    );
     // now we need to verify the db has the proper tables
     await this.setupDatabase();
   }
   private async setupDatabase() {
-    const client = await this.pool.connect();
+    using client = await this.pool.connect();
     // create hazards table
-    const hazardsQuery = `CREATE TABLE IF NOT EXISTS public.hazards (
+    await client.queryObject`CREATE TABLE IF NOT EXISTS public.hazards (
         uuid uuid NOT NULL,
         "time" timestamp with time zone NOT NULL,
         hazard text NOT NULL,
@@ -28,9 +29,8 @@ export default class DbService implements Service {
         "long" double precision NOT NULL,
         PRIMARY KEY (uuid)
     );`;
-    await client.query(hazardsQuery);
     // create hazard confirmation query
-    const updatesQuery = `CREATE TABLE IF NOT EXISTS public.updates (
+    await client.queryObject`CREATE TABLE IF NOT EXISTS public.updates (
         uuid uuid NOT NULL,
         hazard uuid NOT NULL,
         "time" timestamptz NOT NULL,
@@ -39,12 +39,9 @@ export default class DbService implements Service {
         image uuid,
         PRIMARY KEY (uuid)
     );`;
-    await client.query(updatesQuery);
-    // remember to always release client when done to free up pool
-    client.release();
   }
   async saveHazard(hazard: Hazard) {
-    const client = await this.pool.connect();
+    using client = await this.pool.connect();
     const query = {
       name: 'save-hazard',
       text: `INSERT INTO public.hazards (
@@ -63,9 +60,8 @@ export default class DbService implements Service {
       ],
     };
     await client.query(query);
-    client.release();
     await this.updateHazard({
-      uuid: uuidv1(),
+      uuid: uuidv1.generate(),
       hazard: hazard.uuid,
       time: hazard.time,
       active: true,

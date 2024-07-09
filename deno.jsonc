@@ -1,0 +1,19 @@
+{
+  "imports": {
+    "fastify": "npm:fastify@^4.21.0",
+    "@fastify/multipart": "npm:@fastify/multipart@^7.7.3",
+    "@fastify/static": "npm:@fastify/static@^6.10.2",
+
+    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
+
+    "@std/fs": "jsr:@std/fs@^1.0.0-rc.4",
+    "@std/io": "jsr:@std/io@^0.224.3",
+    "@std/jsonc": "jsr:@std/jsonc@^1.0.0-rc.2",
+    "@std/log": "jsr:@std/log@^0.224.4",
+    "@std/path": "jsr:@std/path@^1.0.0-rc.4",
+    "@std/uuid": "jsr:@std/uuid@^1.0.0"
+  },
+  "tasks": {
+    "start": "deno run --allow-env --allow-sys --allow-read --allow-net src/server.ts"
+  }
+}

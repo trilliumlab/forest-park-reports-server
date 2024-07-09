@@ -1,34 +1,36 @@
-import root from 'app-root-path';
-import path from 'path';
-import fs from 'fs-extra';
-import Service from '../service.js';
-import Server from "../server.js";
+import * as path from '@std/path';
+import {Buffer} from '@std/io';
+import Service from '../service.ts';
+import Server from '../server.ts';
 
-const waysDir = path.join(root.path, "ways");
-const relationsDir = path.join(root.path, "relations");
-
+const waysDir = import.meta.resolve("../../ways").substring(7);
+const relationsDir = import.meta.resolve("../../relations").substring(7);
 
 export type TrailRecord = Record<number, Trail>;
 export type RelationRecord = Record<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
-  trails: TrailRecord;
-  relations: RelationRecord
+  trails!: TrailRecord;
+  relations!: RelationRecord
   async init() {
     await this.loadTrails();
     await this.loadRelations();
   }
   async loadTrails() {
-    const trails = {};
-    for (const file of await fs.readdir(waysDir)) {
-      const filePath = path.join(waysDir, file);
-      const split = file.split(".");
+    const trails: TrailRecord = {};
+
+    for await (const entry of Deno.readDir(waysDir)) {
+      const split = entry.name.split(".");
       const system = split[0];
       const extension = split[1];
-      if (extension.toLowerCase() == "json" && (await fs.stat(filePath)).isFile()) {
-        const osm: OSM = JSON.parse(await fs.readFile(filePath, 'utf-8'));
+
+      if (entry.isFile && extension.toLowerCase() == "json") {
+        const file = path.resolve(waysDir, entry.name);
+        const osm: OSM = JSON.parse(await Deno.readTextFile(file));
+
         Server().logger.info(`Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${JSON.stringify(osm.osm3s)}`);
+
         for (const trailModel of osm.elements) {
           trails[trailModel.id] = new Trail(system, trailModel);
         }
@@ -37,14 +39,14 @@ export default class TrailsService implements Service {
     this.trails = trails;
   }
   async loadRelations() {
-    const relations = {};
-    for (const file of await fs.readdir(relationsDir)) {
-      const filePath = path.join(relationsDir, file);
-      const split = file.split(".");
-      // const system = split[0];
+    const relations: RelationRecord = {};
+    for await (const entry of Deno.readDir(relationsDir)) {
+      const split = entry.name.split(".");
       const extension = split[1];
-      if (extension.toLowerCase() == "json" && (await fs.stat(filePath)).isFile()) {
-        const relationList: Relation[] = JSON.parse(await fs.readFile(filePath, 'utf-8'));
+
+      if (entry.isFile && extension.toLowerCase() == "json") {
+        const file = path.resolve(relationsDir, entry.name);
+        const relationList: Relation[] = JSON.parse(await Deno.readTextFile(file));
         Server().logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
           relations[relation.id] = relation;

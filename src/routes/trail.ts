@@ -1,6 +1,6 @@
 import { FastifyPluginAsync, FastifyRequest } from "fastify";
-import Server from "../server.js";
-import {TrailList} from "../services/trails-service.js";
+import Server from "../server.ts";
+import {TrailList} from "../services/trails-service.ts";
 
 const trailRoutes: FastifyPluginAsync = async (server) => {
   server.get('/list', async () => {

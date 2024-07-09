@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
-import trailRoutes from "./trail.js";
-import hazardRoutes from "./hazard.js";
+import trailRoutes from "./trail.ts";
+import hazardRoutes from "./hazard.ts";
 
 const apiRoutes: FastifyPluginAsync = async (server) => {
   server.get('/ping', async () => {
