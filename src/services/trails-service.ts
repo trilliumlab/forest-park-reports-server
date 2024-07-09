@@ -1,8 +1,8 @@
-import * as path from '@std/path';
-import {Uint16, Uint32, Uint64, Float32} from 'typed_numeric';
-import {Buffer} from '@std/io';
-import Service from '../service.ts';
-import Server from '../server.ts';
+import * as path from "@std/path";
+import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
+import { Buffer } from "@std/io";
+import Service from "../service.ts";
+import Server from "../server.ts";
 
 const waysDir = import.meta.resolve("../../ways").substring(7);
 const relationsDir = import.meta.resolve("../../relations").substring(7);
@@ -13,7 +13,7 @@ export type RelationRecord = Record<number, Relation>;
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
   trails!: TrailRecord;
-  relations!: RelationRecord
+  relations!: RelationRecord;
   async init() {
     await this.loadTrails();
     await this.loadRelations();
@@ -30,7 +30,11 @@ export default class TrailsService implements Service {
         const file = path.resolve(waysDir, entry.name);
         const osm: OSM = JSON.parse(await Deno.readTextFile(file));
 
-        Server().logger.info(`Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${JSON.stringify(osm.osm3s)}`);
+        Server().logger.info(
+          `Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${
+            JSON.stringify(osm.osm3s)
+          }`,
+        );
 
         for (const trailModel of osm.elements) {
           trails[trailModel.id] = new Trail(system, trailModel);
@@ -47,7 +51,9 @@ export default class TrailsService implements Service {
 
       if (entry.isFile && extension.toLowerCase() == "json") {
         const file = path.resolve(relationsDir, entry.name);
-        const relationList: Relation[] = JSON.parse(await Deno.readTextFile(file));
+        const relationList: Relation[] = JSON.parse(
+          await Deno.readTextFile(file),
+        );
         Server().logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
           relations[relation.id] = relation;
@@ -59,45 +65,47 @@ export default class TrailsService implements Service {
 }
 
 interface Relation {
-  type: string,
-  id: number,
-  tags: Record<string, string>,
-  members: number[]
+  type: string;
+  id: number;
+  tags: Record<string, string>;
+  members: number[];
 }
 
 interface OSM {
-  version: number,
-  generator: string,
+  version: number;
+  generator: string;
   osm3s: {
-    timestamp_osm_base: string,
-    timestamp_areas_base: string,
-    copyright: string,
-  },
-  elements: TrailModel[]
+    timestamp_osm_base: string;
+    timestamp_areas_base: string;
+    copyright: string;
+  };
+  elements: TrailModel[];
 }
 
 interface TrailModel {
-  id: number,
-  type: string,
-  tags: TagsModel,
-  bounds: BoundsModel,
-  nodes: number[],
-  geometry: Coordinate[],
+  id: number;
+  type: string;
+  tags: TagsModel;
+  bounds: BoundsModel;
+  nodes: number[];
+  geometry: Coordinate[];
 }
 
-interface TagsModel {[key: string]: string}
+interface TagsModel {
+  [key: string]: string;
+}
 
 interface BoundsModel {
-  minlat: number,
-  minlon: number,
-  maxlat: number,
-  maxlon: number,
+  minlat: number;
+  minlon: number;
+  maxlat: number;
+  maxlon: number;
 }
 
 interface Coordinate {
-  lat: number,
-  lon: number,
-  elev: number,
+  lat: number;
+  lon: number;
+  elev: number;
 }
 
 export class Trail implements TrailModel {
@@ -112,7 +120,7 @@ export class Trail implements TrailModel {
 
   constructor(
     system: string,
-    trailModel: TrailModel
+    trailModel: TrailModel,
   ) {
     this.system = system;
     this.id = trailModel.id;
@@ -172,7 +180,9 @@ export class Trail implements TrailModel {
     buf.writeSync(new Uint64(BigInt(this.id)).toLeBytes().toTypedArray());
 
     // write tags
-    buf.writeSync(new Uint16(Object.keys(this.tags).length).toLeBytes().toTypedArray());
+    buf.writeSync(
+      new Uint16(Object.keys(this.tags).length).toLeBytes().toTypedArray(),
+    );
     for (const [key, value] of Object.entries(this.tags)) {
       // write key
       const keyBytes = encoder.encode(key);
@@ -202,20 +212,22 @@ export class Trail implements TrailModel {
     for (const [i, coord] of this.geometry.entries()) {
       buf.writeSync(new Float32(coord.lat).toLeBytes().toTypedArray());
       buf.writeSync(new Float32(coord.lon).toLeBytes().toTypedArray());
-      if (i == 0)
+      if (i == 0) {
         buf.writeSync(new Float32(coord.elev).toLeBytes().toTypedArray());
-      else {
+      } else {
         // minimize drift by doing all math with floats
         // as distance from origin before rounding
         const delta = Math.round(
           (
-            (coord.elev - this.geometry[0].elev)
-            - (this.geometry[i - 1].elev - this.geometry[0].elev)
-          ) * 4
+            (coord.elev - this.geometry[0].elev) -
+            (this.geometry[i - 1].elev - this.geometry[0].elev)
+          ) * 4,
         );
-        buf.writeSync(new Uint8Array([
-          Math.min(Math.max(delta + 128, 0), 255)
-        ]));
+        buf.writeSync(
+          new Uint8Array([
+            Math.min(Math.max(delta + 128, 0), 255),
+          ]),
+        );
       }
     }
 
@@ -240,7 +252,9 @@ export class TrailList {
   encode(buf: Buffer = new Buffer()): Buffer {
     for (const trail of this.trails) {
       const trailBytes = trail.encode().bytes();
-      buf.writeSync(new Uint32(BigInt(trailBytes.length)).toLeBytes().toTypedArray());
+      buf.writeSync(
+        new Uint32(BigInt(trailBytes.length)).toLeBytes().toTypedArray(),
+      );
       buf.writeSync(trailBytes);
     }
     return buf;

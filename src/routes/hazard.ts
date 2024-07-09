@@ -1,19 +1,25 @@
-import { Hono, Context } from "hono";
-import { Hazard, HazardUpdate } from '../models/hazard.ts';
-import { v1 as uuidv1 } from '@std/uuid';
+import { Context, Hono } from "hono";
+import { Hazard, HazardUpdate } from "../models/hazard.ts";
+import { v1 as uuidv1 } from "@std/uuid";
 import Server from "../server.ts";
 
 // array extensions
 declare global {
   interface Array<T> {
-    forEachParallel(this: Array<T>, func: (item: T) => Promise<void>): Promise<void>
+    forEachParallel(
+      this: Array<T>,
+      func: (item: T) => Promise<void>,
+    ): Promise<void>;
   }
 }
-Object.defineProperty(Array.prototype, 'forEachParallel', {
-  value: async function<T>(this: Array<T>, func: (item: T) => Promise<void>): Promise<void> {
+Object.defineProperty(Array.prototype, "forEachParallel", {
+  value: async function <T>(
+    this: Array<T>,
+    func: (item: T) => Promise<void>,
+  ): Promise<void> {
     // TypeScript now correctly infers the result from this.map
-    await Promise.all(this.map(item => func(item)));
-  }
+    await Promise.all(this.map((item) => func(item)));
+  },
 });
 
 function hazardRoutes() {
@@ -60,7 +66,10 @@ function hazardRoutes() {
     const body = await ctx.req.parseBody();
     const data = body.file;
     if (!(data instanceof File)) {
-      return Server().decorators.badRequest(ctx, "multipart/form-data included file must be a File.");
+      return Server().decorators.badRequest(
+        ctx,
+        "multipart/form-data included file must be a File.",
+      );
     }
     if (await Server().images.imageExists(uuid)) {
       return Server().decorators.conflict(ctx, "Image already exists.");

@@ -1,5 +1,5 @@
-import * as fs from '@std/fs';
-import * as path from '@std/path';
+import * as fs from "@std/fs";
+import * as path from "@std/path";
 import Service from "../service.ts";
 import Server from "../server.ts";
 
@@ -10,17 +10,27 @@ export default class ImageService implements Service {
     if (!await fs.exists(imageDir)) {
       await fs.ensureDir(imageDir);
     }
-    setInterval(this.cleanImages.bind(this), Server().config.images.cleanInterval*1000*60);
+    setInterval(
+      this.cleanImages.bind(this),
+      Server().config.images.cleanInterval * 1000 * 60,
+    );
   }
   async saveImage(data: File, uuid: string) {
-    await Deno.writeFile(path.resolve(imageDir, uuid.replaceAll("-", "")), data.stream());
+    await Deno.writeFile(
+      path.resolve(imageDir, uuid.replaceAll("-", "")),
+      data.stream(),
+    );
   }
   async getImage(uuid: string): Promise<ReadableStream<Uint8Array>> {
-    const imageFile = await Deno.open(path.resolve(imageDir, uuid.replaceAll("-", "")));
+    const imageFile = await Deno.open(
+      path.resolve(imageDir, uuid.replaceAll("-", "")),
+    );
     return imageFile.readable;
   }
   async imageExists(uuid: string) {
-    return uuid ? await fs.exists(path.resolve(imageDir, uuid.replaceAll("-", ""))) : false;
+    return uuid
+      ? await fs.exists(path.resolve(imageDir, uuid.replaceAll("-", "")))
+      : false;
   }
   taggedImages: string[] = [];
   async cleanImages() {
@@ -32,7 +42,7 @@ export default class ImageService implements Service {
           await Deno.remove(filePath);
           this.taggedImages.splice(this.taggedImages.indexOf(entry.name), 1);
         } else {
-          console.log(entry.name + ' is not in database, tagging');
+          console.log(entry.name + " is not in database, tagging");
           this.taggedImages.push(entry.name);
         }
       }

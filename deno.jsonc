@@ -20,15 +20,14 @@
     "jsxImportSource": "hono/jsx"
   },
   "fmt": {
-    "files": {
-      "exclude": [
-        "editor/",
-        "relations/",
-        "reversed/",
-        "scripts/",
-        "venv/",
-        "ways/"
-      ]
-    }
+    "exclude": [
+      "editor/",
+      "relations/",
+      "reversed/",
+      "scripts/",
+      "venv/",
+      "ways/",
+      "*.md"
+    ]
   }
 }

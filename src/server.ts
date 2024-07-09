@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import * as log from '@std/log';
+import * as log from "@std/log";
 import Config, { loadConfig } from "./config.ts";
 import Decorators from "./decorators.ts";
-import apiRoutes from './routes/api.ts';
+import apiRoutes from "./routes/api.ts";
 import DbService from "./services/db-service.ts";
 import TrailsService from "./services/trails-service.ts";
 import ImageService from "./services/image-service.ts";
@@ -19,7 +19,7 @@ class ForestParkServer {
   decorators = new Decorators();
 
   constructor() {
-    log.setup({})
+    log.setup({});
     this.logger = log.getLogger();
     this.server = new Hono();
   }
@@ -47,14 +47,14 @@ class ForestParkServer {
     // this.server.register(fastifyStatic.default, {root: rootDir});
   }
   registerRoutes() {
-    this.server.route('/', apiRoutes());
+    this.server.route("/", apiRoutes());
   }
   // Runs the server blocking
   run() {
     Deno.serve({
       port: this.config.http.port,
       hostname: this.config.http.host,
-      handler: this.server.fetch
+      handler: this.server.fetch,
     });
   }
 }

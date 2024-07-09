@@ -1,32 +1,32 @@
-import {parse} from '@std/jsonc';
+import { parse } from "@std/jsonc";
 
 const configPath = import.meta.resolve("../config.jsonc").substring(7);
 
 export default interface Config {
   http: {
-    host: string,
-    port: number,
-  },
+    host: string;
+    port: number;
+  };
   database: {
-    maxConnections: number,
-    database: string,
-    hostname: string,
-    password: string,
-    port: number,
-    user: string,
-    applicationName?: string,
+    maxConnections: number;
+    database: string;
+    hostname: string;
+    password: string;
+    port: number;
+    user: string;
+    applicationName?: string;
     connection?: {
-      attempts?: number,
-      interval?: number,
-    }
+      attempts?: number;
+      interval?: number;
+    };
     tls?: {
-      enable?: boolean,
-      enforce?: boolean,
-    }
-  },
+      enable?: boolean;
+      enforce?: boolean;
+    };
+  };
   images: {
-    cleanInterval: number
-  },
+    cleanInterval: number;
+  };
 }
 
 export async function loadConfig(): Promise<Config> {

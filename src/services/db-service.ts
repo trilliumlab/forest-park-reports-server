@@ -1,8 +1,8 @@
 import * as pg from "postgres";
-import {Hazard, HazardUpdate} from "../models/hazard.ts";
+import { Hazard, HazardUpdate } from "../models/hazard.ts";
 import Server from "../server.ts";
 import Service from "../service.ts";
-import { v1 as uuidv1 } from '@std/uuid';
+import { v1 as uuidv1 } from "@std/uuid";
 
 export default class DbService implements Service {
   pool!: pg.Pool;
@@ -99,8 +99,8 @@ export default class DbService implements Service {
           trail: parseInt(e.trail),
           node: parseInt(e.node),
           lat: +e.lat,
-          long: +e.long
-        }
+          long: +e.long,
+        },
       };
       if (!active) {
         hazards.push(hazard);
@@ -135,8 +135,8 @@ export default class DbService implements Service {
         trail: first.trail,
         node: first.index,
         lat: first.lat,
-        long: first.long
-      }
+        long: first.long,
+      },
     };
   }
   async fetchHazardUpdates(hazard: string): Promise<Array<HazardUpdate>> {
