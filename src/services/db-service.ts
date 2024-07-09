@@ -98,8 +98,8 @@ export default class DbService implements Service {
         location: {
           trail: parseInt(e.trail),
           node: parseInt(e.node),
-          lat: e.lat,
-          long: e.long
+          lat: +e.lat,
+          long: +e.long
         }
       };
       if (!active) {
