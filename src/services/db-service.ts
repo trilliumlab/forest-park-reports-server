@@ -42,14 +42,13 @@ export default class DbService implements Service {
   }
   async saveHazard(hazard: Hazard) {
     using client = await this.pool.connect();
-    const query = {
-      name: 'save-hazard',
-      text: `INSERT INTO public.hazards (
+    await client.queryArray(
+      `INSERT INTO public.hazards (
         uuid, "time", hazard, trail, node, lat, "long"
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7
       );`,
-      values: [
+      [
         hazard.uuid,
         hazard.time.toISOString(),
         hazard.hazard,
@@ -58,8 +57,7 @@ export default class DbService implements Service {
         hazard.location.lat,
         hazard.location.long,
       ],
-    };
-    await client.query(query);
+    );
     await this.updateHazard({
       uuid: uuidv1.generate(),
       hazard: hazard.uuid,
@@ -70,36 +68,29 @@ export default class DbService implements Service {
     });
   }
   async updateHazard(update: HazardUpdate) {
-    const client = await this.pool.connect();
-    const query = {
-       name: 'update-hazard',
-      text: `INSERT INTO public.updates (
+    using client = await this.pool.connect();
+    await client.queryArray(
+      `INSERT INTO public.updates (
         uuid, hazard, "time", active, blur_hash, image
       ) VALUES (
         $1, $2, $3, $4, $5, $6
       );`,
-      values: [
+      [
         update.uuid,
         update.hazard,
         update.time.toISOString(),
         update.active,
         update.blurHash,
         update.image,
-      ]
-    };
-    await client.query(query);
-    client.release();
+      ],
+    );
   }
-  async fetchHazards(active = true): Promise<Array<Hazard>> {
-    const client = await this.pool.connect();
-    const query = {
-      name: 'fetch-active-hazards',
-      text: `SELECT * FROM public.hazards;`
-    };
-    const res = await client.query(query);
-    client.release();
-    const hazards = [];
-    await res.rows.forEachParallel(async (e) => {
+  async fetchHazards(active = true): Promise<Hazard[]> {
+    using client = await this.pool.connect();
+    const res = await client.queryArray`SELECT * FROM public.hazards;`;
+    const hazards: Hazard[] = [];
+    // deno-lint-ignore no-explicit-any
+    await res.rows.forEachParallel(async (e: any) => {
       const hazard = {
         uuid: e.uuid,
         time: e.time,
@@ -126,43 +117,36 @@ export default class DbService implements Service {
     return hazards;
   }
   async fetchHazard(uuid: string): Promise<Hazard | null> {
-    const client = await this.pool.connect();
-    const query = {
-      name: 'fetch-hazard',
-      text: `SELECT * FROM public.hazards WHERE uuid = $1`,
-      values: [
-        uuid
-      ],
-    };
-    const res = await client.query(query);
-    client.release();
+    using client = await this.pool.connect();
+    const res = await client.queryArray(
+      `SELECT * FROM public.hazards WHERE uuid = $1;`,
+      [uuid],
+    );
     if (res.rowCount == 0) {
       return null;
     }
+    // deno-lint-ignore no-explicit-any
+    const first: any = res.rows[0];
     return {
-      uuid: res.rows[0].uuid,
-      time: res.rows[0].time,
-      hazard: res.rows[0].hazard,
+      uuid: first.uuid,
+      time: first.time,
+      hazard: first.hazard,
       location: {
-        trail: res.rows[0].trail,
-        node: res.rows[0].index,
-        lat: res.rows[0].lat,
-        long: res.rows[0].long
+        trail: first.trail,
+        node: first.index,
+        lat: first.lat,
+        long: first.long
       }
     };
   }
   async fetchHazardUpdates(hazard: string): Promise<Array<HazardUpdate>> {
-    const client = await this.pool.connect();
-    const query = {
-      name: 'fetch-hazard-updates',
-      text: `SELECT * FROM public.updates WHERE hazard = $1;`,
-      values: [
-        hazard
-      ],
-    };
-    const res = await client.query(query);
-    client.release();
-    return res.rows.map(e => ({
+    using client = await this.pool.connect();
+    const res = await client.queryArray(
+      `SELECT * FROM public.updates WHERE hazard = $1;`,
+      [hazard],
+    );
+    // deno-lint-ignore no-explicit-any
+    return res.rows.map((e: any) => ({
       uuid: e.uuid,
       hazard: e.hazard,
       time: e.time,
@@ -172,22 +156,16 @@ export default class DbService implements Service {
     }));
   }
   async imageInDatabase(uuid: string): Promise<boolean> {
-    const client = await this.pool.connect();
-    const query = {
-      name: 'image-exists',
-      text: `SELECT * FROM public.updates WHERE image = $1`,
-      values: [
-        uuid
-      ]
-    }
+    using client = await this.pool.connect();
     try {
-      const res = await client.query(query);
+      const res = await client.queryArray(
+        `SELECT * FROM public.updates WHERE image = $1;`,
+        [uuid],
+      );
       return res.rows.length != 0;
     } catch (e) {
       console.log(e);
       return false;
-    } finally {
-      client.release();
     }
   }
 }
