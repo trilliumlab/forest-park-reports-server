@@ -42,7 +42,7 @@ export default class DbService implements Service {
   }
   async saveHazard(hazard: Hazard) {
     using client = await this.pool.connect();
-    await client.queryArray(
+    await client.queryObject(
       `INSERT INTO public.hazards (
         uuid, "time", hazard, trail, node, lat, "long"
       ) VALUES (
@@ -69,7 +69,7 @@ export default class DbService implements Service {
   }
   async updateHazard(update: HazardUpdate) {
     using client = await this.pool.connect();
-    await client.queryArray(
+    await client.queryObject(
       `INSERT INTO public.updates (
         uuid, hazard, "time", active, blur_hash, image
       ) VALUES (
@@ -87,7 +87,7 @@ export default class DbService implements Service {
   }
   async fetchHazards(active = true): Promise<Hazard[]> {
     using client = await this.pool.connect();
-    const res = await client.queryArray`SELECT * FROM public.hazards;`;
+    const res = await client.queryObject`SELECT * FROM public.hazards;`;
     const hazards: Hazard[] = [];
     // deno-lint-ignore no-explicit-any
     await res.rows.forEachParallel(async (e: any) => {
@@ -118,7 +118,7 @@ export default class DbService implements Service {
   }
   async fetchHazard(uuid: string): Promise<Hazard | null> {
     using client = await this.pool.connect();
-    const res = await client.queryArray(
+    const res = await client.queryObject(
       `SELECT * FROM public.hazards WHERE uuid = $1;`,
       [uuid],
     );
@@ -141,7 +141,7 @@ export default class DbService implements Service {
   }
   async fetchHazardUpdates(hazard: string): Promise<Array<HazardUpdate>> {
     using client = await this.pool.connect();
-    const res = await client.queryArray(
+    const res = await client.queryObject(
       `SELECT * FROM public.updates WHERE hazard = $1;`,
       [hazard],
     );
@@ -158,7 +158,7 @@ export default class DbService implements Service {
   async imageInDatabase(uuid: string): Promise<boolean> {
     using client = await this.pool.connect();
     try {
-      const res = await client.queryArray(
+      const res = await client.queryObject(
         `SELECT * FROM public.updates WHERE image = $1;`,
         [uuid],
       );

@@ -18,5 +18,17 @@
   "compilerOptions": {
     "jsx": "precompile",
     "jsxImportSource": "hono/jsx"
+  },
+  "fmt": {
+    "files": {
+      "exclude": [
+        "editor/",
+        "relations/",
+        "reversed/",
+        "scripts/",
+        "venv/",
+        "ways/"
+      ]
+    }
   }
 }

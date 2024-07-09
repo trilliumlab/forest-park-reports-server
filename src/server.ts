@@ -7,8 +7,6 @@ import DbService from "./services/db-service.ts";
 import TrailsService from "./services/trails-service.ts";
 import ImageService from "./services/image-service.ts";
 
-const rootDir = import.meta.resolve("../").substring(7);
-
 class ForestParkServer {
   logger: log.Logger;
   server: Hono;
@@ -71,4 +69,4 @@ export default function Server() {
 }
 
 await Server().initialize();
-await Server().run();
+Server().run();
