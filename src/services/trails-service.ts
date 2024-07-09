@@ -1,4 +1,5 @@
 import * as path from '@std/path';
+import {Uint16, Uint32, Uint64, Float32} from 'typed_numeric';
 import {Buffer} from '@std/io';
 import Service from '../service.ts';
 import Server from '../server.ts';
@@ -159,89 +160,63 @@ export class Trail implements TrailModel {
     for every other point:
       point elevation delta * 10 (i8)
   */
-  encode(): Buffer {
-    // length for name
-    const systemLength = Buffer.byteLength(this.system, 'ascii');
-    let length = 2 + systemLength;
-
-    // length for id
-    length += 8;
-
-    // number of tags
-    length += 2;
-    // length for tags
-    for (const [key, value] of Object.entries(this.tags)) {
-      // key length
-      length += 2 + Buffer.byteLength(key, 'ascii');
-      // value length
-      length += 2 + Buffer.byteLength(value, 'ascii');
-    }
-
-    // length for bounds
-    length += 4*4;
-
-    // length for nodes
-    length += 2;
-    length += this.nodes.length * 8;
-
-    // length for geometry
-    length += 2;
-    length += (this.geometry.length * (4+4+1)) + 3;
-
-    // create buffer with calculated length
-    const buf = Buffer.alloc(length);
-    let pos = 0;
+  encode(buf: Buffer = new Buffer()): Buffer {
+    const encoder = new TextEncoder();
 
     // write system name
-    pos = buf.writeUInt16LE(systemLength, pos);
-    pos += buf.write(this.system, pos, 'ascii');
+    const systemBytes = encoder.encode(this.system);
+    buf.writeSync(new Uint16(systemBytes.length).toLeBytes().toTypedArray());
+    buf.writeSync(systemBytes);
 
     // write ID
-    pos = buf.writeBigUInt64LE(BigInt(this.id), pos);
+    buf.writeSync(new Uint64(BigInt(this.id)).toLeBytes().toTypedArray());
 
     // write tags
-    pos = buf.writeUInt16LE(Object.keys(this.tags).length, pos);
+    buf.writeSync(new Uint16(Object.keys(this.tags).length).toLeBytes().toTypedArray());
     for (const [key, value] of Object.entries(this.tags)) {
       // write key
-      pos = buf.writeUInt16LE(Buffer.byteLength(key, 'ascii'), pos);
-      pos += buf.write(key, pos, 'ascii');
+      const keyBytes = encoder.encode(key);
+      buf.writeSync(new Uint16(keyBytes.length).toLeBytes().toTypedArray());
+      buf.writeSync(keyBytes);
       // write value
-      pos = buf.writeUInt16LE(Buffer.byteLength(value, 'ascii'), pos);
-      pos += buf.write(value, pos, 'ascii');
+      const valueBytes = encoder.encode(value);
+      buf.writeSync(new Uint16(valueBytes.length).toLeBytes().toTypedArray());
+      buf.writeSync(valueBytes);
     }
 
-    // write bounds
-    pos = buf.writeFloatLE(this.bounds.minlat, pos);
-    pos = buf.writeFloatLE(this.bounds.minlon, pos);
-    pos = buf.writeFloatLE(this.bounds.maxlat, pos);
-    pos = buf.writeFloatLE(this.bounds.maxlon, pos);
+    // write bounds;
+    buf.writeSync(new Float32(this.bounds.minlat).toLeBytes().toTypedArray());
+    buf.writeSync(new Float32(this.bounds.minlon).toLeBytes().toTypedArray());
+    buf.writeSync(new Float32(this.bounds.maxlat).toLeBytes().toTypedArray());
+    buf.writeSync(new Float32(this.bounds.maxlon).toLeBytes().toTypedArray());
 
     // write nodes
-    pos = buf.writeUInt16LE(this.nodes.length, pos);
+    buf.writeSync(new Uint16(this.nodes.length).toLeBytes().toTypedArray());
     for (const node of this.nodes) {
-      pos = buf.writeBigUInt64LE(BigInt(node), pos);
+      buf.writeSync(new Uint64(BigInt(node)).toLeBytes().toTypedArray());
     }
 
     // write geometry data
-    pos = buf.writeUInt16LE(this.geometry.length, pos);
+    buf.writeSync(new Uint16(this.geometry.length).toLeBytes().toTypedArray());
 
     for (const [i, coord] of this.geometry.entries()) {
-      pos = buf.writeFloatLE(coord.lat, pos);
-      pos = buf.writeFloatLE(coord.lon, pos);
+      buf.writeSync(new Float32(coord.lat).toLeBytes().toTypedArray());
+      buf.writeSync(new Float32(coord.lon).toLeBytes().toTypedArray());
       if (i == 0)
-        pos = buf.writeFloatLE(coord.elev, pos);
-      else
+        buf.writeSync(new Float32(coord.elev).toLeBytes().toTypedArray());
+      else {
         // minimize drift by doing all math with floats
         // as distance from origin before rounding
-        pos = buf.writeInt8(
-          Math.round(
-            (
-              (coord.elev - this.geometry[0].elev)
-              - (this.geometry[i-1].elev - this.geometry[0].elev)
-            ) * 4
-          ),
-          pos
+        const delta = Math.round(
+          (
+            (coord.elev - this.geometry[0].elev)
+            - (this.geometry[i - 1].elev - this.geometry[0].elev)
+          ) * 4
         );
+        buf.writeSync(new Uint8Array([
+          Math.min(Math.max(delta + 128, 0), 255)
+        ]));
+      }
     }
 
     return buf;
@@ -262,23 +237,12 @@ export class TrailList {
     trail byte length (u32, le)
     trail data
   */
-  encode(): Buffer {
-    const trailBufs = this.trails.map((t) => {
-      return t.encode();
-    });
-    // // calculate length of final buffer
-    // const headerLength = 4 * trailBufs.length;
-    // const dataLength = trailBufs.map((b) => b.length).reduce((a, c) => a+c);
-
-    let buf = Buffer.alloc(0);
-    // let pos = 0;
-
-    for (const trailBuf of trailBufs) {
-      const header = Buffer.alloc(4);
-      header.writeUInt32LE(trailBuf.length);
-      buf = Buffer.concat([buf, header, trailBuf]);
+  encode(buf: Buffer = new Buffer()): Buffer {
+    for (const trail of this.trails) {
+      const trailBytes = trail.encode().bytes();
+      buf.writeSync(new Uint32(BigInt(trailBytes.length)).toLeBytes().toTypedArray());
+      buf.writeSync(trailBytes);
     }
-
     return buf;
   }
 }

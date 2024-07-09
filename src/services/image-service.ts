@@ -21,20 +21,20 @@ export default class ImageService implements Service {
     await reply.sendFile(path.join('/images', uuid.replaceAll("-", "")));
   }
   async imageExists(uuid: string) {
-    return uuid == null ? false : fs.pathExists(path.join(imageDir, uuid.replaceAll("-", "")));
+    return uuid == null ? false : fs.exists(path.resolve(imageDir, uuid.replaceAll("-", "")));
   }
   taggedImages: string[] = [];
   async cleanImages() {
-    for (const file of await fs.readdir(imageDir)) {
-      if (!await Server().database.imageInDatabase(file)) {
-        if (this.taggedImages.includes(file)) {
-          console.log(`deleting tagged image: ${file}`);
-          const filePath = path.join(imageDir, file);
-          await fs.rm(filePath);
-          this.taggedImages.splice(this.taggedImages.indexOf(file), 1);
+    for await (const entry of Deno.readDir(imageDir)) {
+      if (!await Server().database.imageInDatabase(entry.name)) {
+        if (this.taggedImages.includes(entry.name)) {
+          console.log(`deleting tagged image: ${entry.name}`);
+          const filePath = path.resolve(imageDir, entry.name);
+          await Deno.remove(filePath);
+          this.taggedImages.splice(this.taggedImages.indexOf(entry.name), 1);
         } else {
-          console.log(file + ' is not in database, tagging');
-          this.taggedImages.push(file);
+          console.log(entry.name + ' is not in database, tagging');
+          this.taggedImages.push(entry.name);
         }
       }
     }

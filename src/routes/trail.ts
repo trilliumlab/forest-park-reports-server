@@ -6,18 +6,18 @@ const trailRoutes: FastifyPluginAsync = async (server) => {
   server.get('/list', async () => {
     return Object.keys(Server().trails.trails).map((k) => Number(k));
   });
-  server.get('/:id', async (req: FastifyRequest<{Params: {id: string}}>, rep) => {
+  server.get('/:id', async (req: FastifyRequest<{Params: {id: number}}>, rep) => {
     const { id } = req.params;
     Server().logger.debug(`Got request with ${id}, ${typeof id}`);
     if (id in Server().trails.trails) {
-      return Server().trails.trails[id].encode();
+      return Server().trails.trails[id].encode().bytes();
     } else {
       return Server().decorators.notFound(req, rep);
     }
   });
   server.get('/all', async () => {
     const trailList = new TrailList(Object.values(Server().trails.trails));
-    return trailList.encode();
+    return trailList.encode().bytes();
   });
   server.get('/relations', async () => {
     return Object.values(Server().trails.relations)

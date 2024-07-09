@@ -4,6 +4,7 @@
     "@fastify/multipart": "npm:@fastify/multipart@^7.7.3",
     "@fastify/static": "npm:@fastify/static@^6.10.2",
 
+    "typed_numeric": "https://raw.githubusercontent.com/trilliumlab/typed_numeric_deno/master/mod.ts",
     "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
 
     "@std/fs": "jsr:@std/fs@^1.0.0-rc.4",
@@ -14,6 +15,6 @@
     "@std/uuid": "jsr:@std/uuid@^1.0.0"
   },
   "tasks": {
-    "start": "deno run --allow-env --allow-sys --allow-read --allow-net src/server.ts"
+    "start": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts"
   }
 }
