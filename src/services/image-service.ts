@@ -1,42 +1,49 @@
-import root from 'app-root-path';
-import path from 'path';
-import fs from 'fs-extra';
-import {pipeline} from "stream/promises";
-import {MultipartFile} from "@fastify/multipart";
-import Service from "../service.js";
-import {FastifyReply} from "fastify";
-import Server from "../server.js";
+import * as fs from "@std/fs";
+import * as path from "@std/path";
+import Service from "../service.ts";
+import Server from "../server.ts";
 
-const imageDir = path.join(root.path, "images");
+const imageDir = import.meta.resolve("../../images").substring(7);
 
 export default class ImageService implements Service {
   async init() {
-    if (!await fs.pathExists(imageDir)) {
-      await fs.mkdir(imageDir);
+    if (!await fs.exists(imageDir)) {
+      await fs.ensureDir(imageDir);
     }
-    setInterval(this.cleanImages.bind(this), Server().config.images.cleanInterval*1000*60);
+    setInterval(
+      this.cleanImages.bind(this),
+      Server().config.images.cleanInterval * 1000 * 60,
+    );
   }
-  async saveImage(data: MultipartFile, uuid: string) {
-    await pipeline(data.file, fs.createWriteStream(path.join(imageDir, uuid.replaceAll("-", ""))));
+  async saveImage(data: File, uuid: string) {
+    await Deno.writeFile(
+      path.resolve(imageDir, uuid.replaceAll("-", "")),
+      data.stream(),
+    );
   }
-  async sendImage(reply: FastifyReply<never>, uuid: string) {
-    await reply.sendFile(path.join('/images', uuid.replaceAll("-", "")));
+  async getImage(uuid: string): Promise<ReadableStream<Uint8Array>> {
+    const imageFile = await Deno.open(
+      path.resolve(imageDir, uuid.replaceAll("-", "")),
+    );
+    return imageFile.readable;
   }
   async imageExists(uuid: string) {
-    return uuid == null ? false : fs.pathExists(path.join(imageDir, uuid.replaceAll("-", "")));
+    return uuid
+      ? await fs.exists(path.resolve(imageDir, uuid.replaceAll("-", "")))
+      : false;
   }
   taggedImages: string[] = [];
   async cleanImages() {
-    for (const file of await fs.readdir(imageDir)) {
-      if (!await Server().database.imageInDatabase(file)) {
-        if (this.taggedImages.includes(file)) {
-          console.log(`deleting tagged image: ${file}`);
-          const filePath = path.join(imageDir, file);
-          await fs.rm(filePath);
-          this.taggedImages.splice(this.taggedImages.indexOf(file), 1);
+    for await (const entry of Deno.readDir(imageDir)) {
+      if (!await Server().database.imageInDatabase(entry.name)) {
+        if (this.taggedImages.includes(entry.name)) {
+          console.log(`deleting tagged image: ${entry.name}`);
+          const filePath = path.resolve(imageDir, entry.name);
+          await Deno.remove(filePath);
+          this.taggedImages.splice(this.taggedImages.indexOf(entry.name), 1);
         } else {
-          console.log(file + ' is not in database, tagging');
-          this.taggedImages.push(file);
+          console.log(entry.name + " is not in database, tagging");
+          this.taggedImages.push(entry.name);
         }
       }
     }

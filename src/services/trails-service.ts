@@ -1,34 +1,41 @@
-import root from 'app-root-path';
-import path from 'path';
-import fs from 'fs-extra';
-import Service from '../service.js';
-import Server from "../server.js";
+import * as path from "@std/path";
+import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
+import { Buffer } from "@std/io";
+import Service from "../service.ts";
+import Server from "../server.ts";
 
-const waysDir = path.join(root.path, "ways");
-const relationsDir = path.join(root.path, "relations");
-
+const waysDir = import.meta.resolve("../../ways").substring(7);
+const relationsDir = import.meta.resolve("../../relations").substring(7);
 
 export type TrailRecord = Record<number, Trail>;
 export type RelationRecord = Record<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
 export default class TrailsService implements Service {
-  trails: TrailRecord;
-  relations: RelationRecord
+  trails!: TrailRecord;
+  relations!: RelationRecord;
   async init() {
     await this.loadTrails();
     await this.loadRelations();
   }
   async loadTrails() {
-    const trails = {};
-    for (const file of await fs.readdir(waysDir)) {
-      const filePath = path.join(waysDir, file);
-      const split = file.split(".");
+    const trails: TrailRecord = {};
+
+    for await (const entry of Deno.readDir(waysDir)) {
+      const split = entry.name.split(".");
       const system = split[0];
       const extension = split[1];
-      if (extension.toLowerCase() == "json" && (await fs.stat(filePath)).isFile()) {
-        const osm: OSM = JSON.parse(await fs.readFile(filePath, 'utf-8'));
-        Server().logger.info(`Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${JSON.stringify(osm.osm3s)}`);
+
+      if (entry.isFile && extension.toLowerCase() == "json") {
+        const file = path.resolve(waysDir, entry.name);
+        const osm: OSM = JSON.parse(await Deno.readTextFile(file));
+
+        Server().logger.info(
+          `Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${
+            JSON.stringify(osm.osm3s)
+          }`,
+        );
+
         for (const trailModel of osm.elements) {
           trails[trailModel.id] = new Trail(system, trailModel);
         }
@@ -37,14 +44,16 @@ export default class TrailsService implements Service {
     this.trails = trails;
   }
   async loadRelations() {
-    const relations = {};
-    for (const file of await fs.readdir(relationsDir)) {
-      const filePath = path.join(relationsDir, file);
-      const split = file.split(".");
-      // const system = split[0];
+    const relations: RelationRecord = {};
+    for await (const entry of Deno.readDir(relationsDir)) {
+      const split = entry.name.split(".");
       const extension = split[1];
-      if (extension.toLowerCase() == "json" && (await fs.stat(filePath)).isFile()) {
-        const relationList: Relation[] = JSON.parse(await fs.readFile(filePath, 'utf-8'));
+
+      if (entry.isFile && extension.toLowerCase() == "json") {
+        const file = path.resolve(relationsDir, entry.name);
+        const relationList: Relation[] = JSON.parse(
+          await Deno.readTextFile(file),
+        );
         Server().logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
           relations[relation.id] = relation;
@@ -56,45 +65,47 @@ export default class TrailsService implements Service {
 }
 
 interface Relation {
-  type: string,
-  id: number,
-  tags: Record<string, string>,
-  members: number[]
+  type: string;
+  id: number;
+  tags: Record<string, string>;
+  members: number[];
 }
 
 interface OSM {
-  version: number,
-  generator: string,
+  version: number;
+  generator: string;
   osm3s: {
-    timestamp_osm_base: string,
-    timestamp_areas_base: string,
-    copyright: string,
-  },
-  elements: TrailModel[]
+    timestamp_osm_base: string;
+    timestamp_areas_base: string;
+    copyright: string;
+  };
+  elements: TrailModel[];
 }
 
 interface TrailModel {
-  id: number,
-  type: string,
-  tags: TagsModel,
-  bounds: BoundsModel,
-  nodes: number[],
-  geometry: Coordinate[],
+  id: number;
+  type: string;
+  tags: TagsModel;
+  bounds: BoundsModel;
+  nodes: number[];
+  geometry: Coordinate[];
 }
 
-interface TagsModel {[key: string]: string}
+interface TagsModel {
+  [key: string]: string;
+}
 
 interface BoundsModel {
-  minlat: number,
-  minlon: number,
-  maxlat: number,
-  maxlon: number,
+  minlat: number;
+  minlon: number;
+  maxlat: number;
+  maxlon: number;
 }
 
 interface Coordinate {
-  lat: number,
-  lon: number,
-  elev: number,
+  lat: number;
+  lon: number;
+  elev: number;
 }
 
 export class Trail implements TrailModel {
@@ -109,7 +120,7 @@ export class Trail implements TrailModel {
 
   constructor(
     system: string,
-    trailModel: TrailModel
+    trailModel: TrailModel,
   ) {
     this.system = system;
     this.id = trailModel.id;
@@ -157,89 +168,67 @@ export class Trail implements TrailModel {
     for every other point:
       point elevation delta * 10 (i8)
   */
-  encode(): Buffer {
-    // length for name
-    const systemLength = Buffer.byteLength(this.system, 'ascii');
-    let length = 2 + systemLength;
-
-    // length for id
-    length += 8;
-
-    // number of tags
-    length += 2;
-    // length for tags
-    for (const [key, value] of Object.entries(this.tags)) {
-      // key length
-      length += 2 + Buffer.byteLength(key, 'ascii');
-      // value length
-      length += 2 + Buffer.byteLength(value, 'ascii');
-    }
-
-    // length for bounds
-    length += 4*4;
-
-    // length for nodes
-    length += 2;
-    length += this.nodes.length * 8;
-
-    // length for geometry
-    length += 2;
-    length += (this.geometry.length * (4+4+1)) + 3;
-
-    // create buffer with calculated length
-    const buf = Buffer.alloc(length);
-    let pos = 0;
+  encode(buf: Buffer = new Buffer()): Buffer {
+    const encoder = new TextEncoder();
 
     // write system name
-    pos = buf.writeUInt16LE(systemLength, pos);
-    pos += buf.write(this.system, pos, 'ascii');
+    const systemBytes = encoder.encode(this.system);
+    buf.writeSync(new Uint16(systemBytes.length).toLeBytes().toTypedArray());
+    buf.writeSync(systemBytes);
 
     // write ID
-    pos = buf.writeBigUInt64LE(BigInt(this.id), pos);
+    buf.writeSync(new Uint64(BigInt(this.id)).toLeBytes().toTypedArray());
 
     // write tags
-    pos = buf.writeUInt16LE(Object.keys(this.tags).length, pos);
+    buf.writeSync(
+      new Uint16(Object.keys(this.tags).length).toLeBytes().toTypedArray(),
+    );
     for (const [key, value] of Object.entries(this.tags)) {
       // write key
-      pos = buf.writeUInt16LE(Buffer.byteLength(key, 'ascii'), pos);
-      pos += buf.write(key, pos, 'ascii');
+      const keyBytes = encoder.encode(key);
+      buf.writeSync(new Uint16(keyBytes.length).toLeBytes().toTypedArray());
+      buf.writeSync(keyBytes);
       // write value
-      pos = buf.writeUInt16LE(Buffer.byteLength(value, 'ascii'), pos);
-      pos += buf.write(value, pos, 'ascii');
+      const valueBytes = encoder.encode(value);
+      buf.writeSync(new Uint16(valueBytes.length).toLeBytes().toTypedArray());
+      buf.writeSync(valueBytes);
     }
 
-    // write bounds
-    pos = buf.writeFloatLE(this.bounds.minlat, pos);
-    pos = buf.writeFloatLE(this.bounds.minlon, pos);
-    pos = buf.writeFloatLE(this.bounds.maxlat, pos);
-    pos = buf.writeFloatLE(this.bounds.maxlon, pos);
+    // write bounds;
+    buf.writeSync(new Float32(this.bounds.minlat).toLeBytes().toTypedArray());
+    buf.writeSync(new Float32(this.bounds.minlon).toLeBytes().toTypedArray());
+    buf.writeSync(new Float32(this.bounds.maxlat).toLeBytes().toTypedArray());
+    buf.writeSync(new Float32(this.bounds.maxlon).toLeBytes().toTypedArray());
 
     // write nodes
-    pos = buf.writeUInt16LE(this.nodes.length, pos);
+    buf.writeSync(new Uint16(this.nodes.length).toLeBytes().toTypedArray());
     for (const node of this.nodes) {
-      pos = buf.writeBigUInt64LE(BigInt(node), pos);
+      buf.writeSync(new Uint64(BigInt(node)).toLeBytes().toTypedArray());
     }
 
     // write geometry data
-    pos = buf.writeUInt16LE(this.geometry.length, pos);
+    buf.writeSync(new Uint16(this.geometry.length).toLeBytes().toTypedArray());
 
     for (const [i, coord] of this.geometry.entries()) {
-      pos = buf.writeFloatLE(coord.lat, pos);
-      pos = buf.writeFloatLE(coord.lon, pos);
-      if (i == 0)
-        pos = buf.writeFloatLE(coord.elev, pos);
-      else
+      buf.writeSync(new Float32(coord.lat).toLeBytes().toTypedArray());
+      buf.writeSync(new Float32(coord.lon).toLeBytes().toTypedArray());
+      if (i == 0) {
+        buf.writeSync(new Float32(coord.elev).toLeBytes().toTypedArray());
+      } else {
         // minimize drift by doing all math with floats
         // as distance from origin before rounding
-        pos = buf.writeInt8(
-          Math.round(
-            (
-              (coord.elev - this.geometry[0].elev)
-              - (this.geometry[i-1].elev - this.geometry[0].elev)
-            ) * 4
-          ),
-          pos
+        const delta = Math.round(
+          (
+            (coord.elev - this.geometry[0].elev) -
+            (this.geometry[i - 1].elev - this.geometry[0].elev)
+          ) * 4,
         );
+        buf.writeSync(
+          new Uint8Array([
+            Math.min(Math.max(delta + 128, 0), 255),
+          ]),
+        );
+      }
     }
 
     return buf;
@@ -260,23 +249,14 @@ export class TrailList {
     trail byte length (u32, le)
     trail data
   */
-  encode(): Buffer {
-    const trailBufs = this.trails.map((t) => {
-      return t.encode();
-    });
-    // // calculate length of final buffer
-    // const headerLength = 4 * trailBufs.length;
-    // const dataLength = trailBufs.map((b) => b.length).reduce((a, c) => a+c);
-
-    let buf = Buffer.alloc(0);
-    // let pos = 0;
-
-    for (const trailBuf of trailBufs) {
-      const header = Buffer.alloc(4);
-      header.writeUInt32LE(trailBuf.length);
-      buf = Buffer.concat([buf, header, trailBuf]);
+  encode(buf: Buffer = new Buffer()): Buffer {
+    for (const trail of this.trails) {
+      const trailBytes = trail.encode().bytes();
+      buf.writeSync(
+        new Uint32(BigInt(trailBytes.length)).toLeBytes().toTypedArray(),
+      );
+      buf.writeSync(trailBytes);
     }
-
     return buf;
   }
 }

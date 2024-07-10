@@ -1,0 +1,22 @@
+{
+  "http": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
+  "database": {
+    // Maximum number of database connections to keep open
+    "maxConnections": 10,
+
+    // Fill in the following with your PostgreSQL database credentials
+    "applicationName": "<APPLICATION_NAME>",
+    "database": "<DATABASE_NAME>",
+    "hostname": "<DATABASE_HOST>",
+    "password": "<DATABASE_PASSWORD>",
+    "port": 5432,
+    "user": "<DATABASE_USERNAME>"
+  },
+  "images": {
+    // How often to tag orphaned images for cleanup (in minutes)
+    "cleanInterval": 5
+  }
+}

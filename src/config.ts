@@ -1,23 +1,34 @@
-import root from 'app-root-path';
-import path from "path";
-import fs from 'fs-extra';
+import { parse } from "@std/jsonc";
 
-const configFile = path.join(root.path, "config.json");
+const configPath = import.meta.resolve("../config.jsonc").substring(7);
 
 export default interface Config {
   http: {
-    host: string,
-    port: number,
-  },
+    host: string;
+    port: number;
+  };
   database: {
-    url: string,
-    maxConnections: number
-  },
+    maxConnections: number;
+    database: string;
+    hostname: string;
+    password: string;
+    port: number;
+    user: string;
+    applicationName?: string;
+    connection?: {
+      attempts?: number;
+      interval?: number;
+    };
+    tls?: {
+      enable?: boolean;
+      enforce?: boolean;
+    };
+  };
   images: {
-    cleanInterval: number
-  },
+    cleanInterval: number;
+  };
 }
 
 export async function loadConfig(): Promise<Config> {
-  return JSON.parse(await fs.readFile(configFile, 'utf-8'));
+  return parse(await Deno.readTextFile(configPath));
 }
