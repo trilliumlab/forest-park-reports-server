@@ -16,7 +16,8 @@
 
     // Dev dependencies
     "drizzle-kit": "npm:drizzle-kit@^0.23.0",
-    "jsonc-simple-parser": "npm:jsonc-simple-parser@^3.0.0"
+    "jsonc-simple-parser": "npm:jsonc-simple-parser@^3.0.0",
+    "lookpath": "npm:lookpath@^1.2.2"
   },
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check src/**/*.ts",
@@ -26,7 +27,7 @@
     "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",
     "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
     "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate",
-    "ensure-pre-commit-hooks": "sh ./.pre-commit-install.sh"
+    "ensure-pre-commit-hooks": "deno run --allow-env --allow-read --allow-run .pre-commit-install.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

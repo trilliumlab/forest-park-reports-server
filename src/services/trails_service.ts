@@ -4,8 +4,8 @@ import { Buffer } from "@std/io";
 import Service from "../service.ts";
 import Server from "../server.ts";
 
-const waysDir = import.meta.resolve("../../ways").substring(7);
-const relationsDir = import.meta.resolve("../../relations").substring(7);
+const waysDir = path.fromFileUrl(import.meta.resolve("../../ways"));
+const relationsDir = path.fromFileUrl(import.meta.resolve("../../relations"));
 
 export type TrailRecord = Record<number, Trail>;
 export type RelationRecord = Record<number, Relation>;

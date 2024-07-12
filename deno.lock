@@ -23,6 +23,7 @@
       "npm:drizzle-kit@^0.23.0": "npm:drizzle-kit@0.23.0_esbuild@0.19.12",
       "npm:drizzle-orm@^0.32.0": "npm:drizzle-orm@0.32.0_postgres@3.4.4",
       "npm:jsonc-simple-parser@^3.0.0": "npm:jsonc-simple-parser@3.0.0",
+      "npm:lookpath@^1.2.2": "npm:lookpath@1.2.2",
       "npm:pg@^8.12.0": "npm:pg@8.12.0",
       "npm:postgres@^3.4.4": "npm:postgres@3.4.4"
     },
@@ -393,6 +394,10 @@
           "reghex": "reghex@3.0.2"
         }
       },
+      "lookpath@1.2.2": {
+        "integrity": "sha512-k2Gmn8iV6qdME3ztZC2spubmQISimFOPLuQKiPaLcVdRz0IpdxrNClVepMlyTJlhodm/zG/VfbkWERm3kUIh+Q==",
+        "dependencies": {}
+      },
       "ms@2.1.2": {
         "integrity": "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==",
         "dependencies": {}
@@ -580,6 +585,7 @@
       "npm:drizzle-kit@^0.23.0",
       "npm:drizzle-orm@^0.32.0",
       "npm:jsonc-simple-parser@^3.0.0",
+      "npm:lookpath@^1.2.2",
       "npm:pg@^8.12.0"
     ]
   }

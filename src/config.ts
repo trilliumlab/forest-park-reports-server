@@ -1,6 +1,8 @@
 import { parse } from "@std/jsonc";
+import * as path from "@std/path";
 
-const configPath = import.meta.resolve("../config.jsonc").substring(7);
+const configPath = path.fromFileUrl(import.meta.resolve("../config.jsonc"));
+console.log(configPath);
 
 export default interface TrailEyesConfig {
   http: {
