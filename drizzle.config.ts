@@ -1,7 +1,7 @@
 import { defineConfig } from "drizzle-kit";
 import JSONC from "jsonc-simple-parser";
 
-const dbConfig = JSONC.parse(Deno.readTextFileSync("./config.jsonc")).database
+const dbConfig = JSONC.parse(Deno.readTextFileSync("./config.jsonc")).database;
 
 export default defineConfig({
   schema: "./src/database/schema.ts",
