@@ -16,12 +16,12 @@
 
     // Dev dependencies
     "drizzle-kit": "npm:drizzle-kit@^0.23.0",
-    "jsonc-simple-parser": "npm:jsonc-simple-parser@^3.0.0",
+    "jsonc-simple-parser": "npm:jsonc-simple-parser@^3.0.0"
   },
   "tasks": {
-    "check": "deno fmt --check && deno lint && deno check **/*.ts",
+    "check": "deno fmt --check && deno lint && deno check src/**/*.ts",
     "start": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
-    "watch": "deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts"
+    "watch": "deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
     "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",
     "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
     "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate"
@@ -32,6 +32,8 @@
   },
   "fmt": {
     "exclude": [
+      "drizzle/",
+      "node_modules/",
       "editor/",
       "relations/",
       "reversed/",

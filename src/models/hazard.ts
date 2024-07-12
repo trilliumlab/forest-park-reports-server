@@ -1,4 +1,4 @@
-import { hazards, updates } from '../database/schema.ts';
+import { hazards, updates } from "../database/schema.ts";
 
 export interface Hazard extends NewHazardRequest {
   uuid: string;
@@ -6,17 +6,19 @@ export interface Hazard extends NewHazardRequest {
 }
 export type HazardRow = typeof hazards.$inferInsert;
 export type HazardType = typeof hazards.$inferInsert.hazard;
-export function hazardToHazardRow({location, ...rest}: Hazard): HazardRow {
+export function hazardToHazardRow({ location, ...rest }: Hazard): HazardRow {
   return {
     ...rest,
     ...location,
-  }
+  };
 }
-export function hazardRowToHazard({trail, node, lat, long, ...rest}: HazardRow): Hazard {
+export function hazardRowToHazard(
+  { trail, node, lat, long, ...rest }: HazardRow,
+): Hazard {
   return {
     ...rest,
-    location: { trail, node, lat, long }
-  }
+    location: { trail, node, lat, long },
+  };
 }
 
 export interface NewHazardRequest {
