@@ -1,19 +1,17 @@
 import { Hono } from "hono";
 import * as log from "@std/log";
-import Config, { loadConfig } from "./config.ts";
+import { config } from "./config.ts";
 import Decorators from "./decorators.ts";
 import apiRoutes from "./routes/api.ts";
-import DbService from "./services/db-service.ts";
-import TrailsService from "./services/trails-service.ts";
-import ImageService from "./services/image-service.ts";
+import DbService from "./services/db_service.ts";
+import Trails_service from "./services/trails_service.ts";
+import ImageService from "./services/image_service.ts";
 
 class ForestParkServer {
   logger: log.Logger;
   server: Hono;
-  // server config
-  config!: Config;
   // construct services
-  trails = new TrailsService();
+  trails = new Trails_service();
   images = new ImageService();
   database = new DbService();
   decorators = new Decorators();
@@ -26,8 +24,6 @@ class ForestParkServer {
   // This is where we run any async code that needs
   // to be run before the http server can be started
   async initialize() {
-    // load config before initializing services, services rely on config
-    this.config = await loadConfig();
     // starts all services
     await this.initServices();
     // registers middleware
@@ -52,8 +48,8 @@ class ForestParkServer {
   // Runs the server blocking
   run() {
     Deno.serve({
-      port: this.config.http.port,
-      hostname: this.config.http.host,
+      port: config.http.port,
+      hostname: config.http.host,
       handler: this.server.fetch,
     });
   }

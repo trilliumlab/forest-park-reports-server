@@ -64,12 +64,15 @@ forest-park-reports-server
 ├── relations # Relations data; generated from editor.
 ├── reversed # List of trails that need to be reversed; generated from editor.
 ├── scripts # Scripts for mapping elevation data to trails.
+├── drizzle # Contains generated drizzle migration data.
 ├── src # Source typescript code for the server.
-│   ├── models # Data models
-│   ├── routes # API routes
+│   ├── database # Database schema.
+│   ├── models # Data models.
+│   ├── routes # API routes.
 │   └── services # Services for interacting with the database and filesystem (images).
 ├── ways # List of trails; generated from editor.
 ├── config.jsonc # Server configuration file, use config.example.jsonc as a template.
+├── drizzle.config.ts # Configuration for drizzle-kit (ORM).
 └── deno.jsonc # Deno configuration file.
 ```
 

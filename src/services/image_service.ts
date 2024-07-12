@@ -2,6 +2,7 @@ import * as fs from "@std/fs";
 import * as path from "@std/path";
 import Service from "../service.ts";
 import Server from "../server.ts";
+import { config } from "../config.ts";
 
 const imageDir = import.meta.resolve("../../images").substring(7);
 
@@ -12,7 +13,7 @@ export default class ImageService implements Service {
     }
     setInterval(
       this.cleanImages.bind(this),
-      Server().config.images.cleanInterval * 1000 * 60,
+      config.images.cleanInterval * 1000 * 60,
     );
   }
   async saveImage(data: File, uuid: string) {

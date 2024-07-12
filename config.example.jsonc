@@ -9,11 +9,12 @@
 
     // Fill in the following with your PostgreSQL database credentials
     "applicationName": "<APPLICATION_NAME>",
-    "database": "<DATABASE_NAME>",
-    "hostname": "<DATABASE_HOST>",
-    "password": "<DATABASE_PASSWORD>",
+    "host": "<DATABASE_HOST>",
     "port": 5432,
-    "user": "<DATABASE_USERNAME>"
+    "user": "<DATABASE_USERNAME>",
+    "password": "<DATABASE_PASSWORD>",
+    "database": "<DATABASE_NAME>",
+    "ssl": true
   },
   "images": {
     // How often to tag orphaned images for cleanup (in minutes)
