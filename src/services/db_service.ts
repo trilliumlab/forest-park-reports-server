@@ -1,8 +1,16 @@
-import { Hazard, HazardUpdate, hazardToHazardRow, hazardRowToHazard } from '../models/hazard.ts';
-import { db } from '../database/client.ts';
+import {
+  Hazard,
+  hazardRowToHazard,
+  hazardToHazardRow,
+  HazardUpdate,
+} from "../models/hazard.ts";
+import { db } from "../database/client.ts";
 import Service from "../service.ts";
 import { v1 as uuidv1 } from "@std/uuid";
-import { hazards as hazardsTable, updates as updatesTable } from '../database/schema.ts';
+import {
+  hazards as hazardsTable,
+  updates as updatesTable,
+} from "../database/schema.ts";
 import { eq } from "drizzle-orm";
 
 export default class DbService implements Service {
@@ -51,13 +59,13 @@ export default class DbService implements Service {
   }
   async fetchHazard(uuid: string): Promise<Hazard | null> {
     const hazardRow = await db.query.hazards.findFirst({
-      where: eq(hazardsTable.uuid, uuid)
+      where: eq(hazardsTable.uuid, uuid),
     });
     return hazardRow ? hazardRowToHazard(hazardRow) : null;
   }
   async fetchHazardUpdates(hazard: string): Promise<Array<HazardUpdate>> {
     return await db.query.updates.findMany({
-      where: eq(updatesTable.hazard, hazard)
+      where: eq(updatesTable.hazard, hazard),
     });
   }
   async imageInDatabase(uuid: string): Promise<boolean> {
