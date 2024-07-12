@@ -26,7 +26,7 @@
     "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",
     "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
     "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate",
-    "ensure-pre-commit-hooks": "sh ./.pre-commit-install.sh"
+    "ensure-pre-commit-hooks": "bash -c 'sh ./.pre-commit-install.sh'"
   },
   "compilerOptions": {
     "jsx": "precompile",

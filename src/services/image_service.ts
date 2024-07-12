@@ -4,7 +4,7 @@ import Service from "../service.ts";
 import Server from "../server.ts";
 import { config } from "../config.ts";
 
-const imageDir = import.meta.resolve("../../images").substring(7);
+const imageDir = path.fromFileUrl(import.meta.resolve("../../images"));
 
 export default class ImageService implements Service {
   async init() {
