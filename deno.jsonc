@@ -1,20 +1,30 @@
 {
   "imports": {
     "hono": "jsr:@hono/hono@^4.4.12",
+    "drizzle-orm": "npm:drizzle-orm@^0.32.0",
+    "@types/pg": "npm:@types/pg@^8.11.6",
+    "pg": "npm:pg@^8.12.0",
 
     "typed_numeric": "https://raw.githubusercontent.com/trilliumlab/typed_numeric_deno/master/mod.ts",
-    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
 
     "@std/fs": "jsr:@std/fs@^1.0.0-rc.4",
     "@std/io": "jsr:@std/io@^0.224.3",
     "@std/jsonc": "jsr:@std/jsonc@^1.0.0-rc.2",
     "@std/log": "jsr:@std/log@^0.224.4",
     "@std/path": "jsr:@std/path@^1.0.0-rc.4",
-    "@std/uuid": "jsr:@std/uuid@^1.0.0"
+    "@std/uuid": "jsr:@std/uuid@^1.0.0",
+
+    // Dev dependencies
+    "drizzle-kit": "npm:drizzle-kit@^0.23.0",
+    "jsonc-simple-parser": "npm:jsonc-simple-parser@^3.0.0",
   },
   "tasks": {
+    "check": "deno fmt --check && deno lint && deno check **/*.ts",
     "start": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
     "watch": "deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts"
+    "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",
+    "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
+    "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate"
   },
   "compilerOptions": {
     "jsx": "precompile",

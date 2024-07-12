@@ -2,33 +2,28 @@ import { parse } from "@std/jsonc";
 
 const configPath = import.meta.resolve("../config.jsonc").substring(7);
 
-export default interface Config {
+export default interface TrailEyesConfig {
   http: {
     host: string;
     port: number;
   };
   database: {
     maxConnections: number;
-    database: string;
-    hostname: string;
-    password: string;
+    applicationName?: string;
+    host: string;
     port: number;
     user: string;
-    applicationName?: string;
-    connection?: {
-      attempts?: number;
-      interval?: number;
-    };
-    tls?: {
-      enable?: boolean;
-      enforce?: boolean;
-    };
+    password: string;
+    database: string;
+    ssl?: boolean;
   };
   images: {
     cleanInterval: number;
   };
 }
 
-export async function loadConfig(): Promise<Config> {
-  return parse(await Deno.readTextFile(configPath));
+export function loadConfig(): TrailEyesConfig {
+  return parse(Deno.readTextFileSync(configPath)) as unknown as TrailEyesConfig;
 }
+
+export const config = loadConfig();

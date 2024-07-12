@@ -1,6 +1,6 @@
 import { Context, Hono } from "hono";
 import Server from "../server.ts";
-import { TrailList } from "../services/trails-service.ts";
+import { TrailList } from "../services/trails_service.ts";
 
 function trailRoutes() {
   const trailGroup = new Hono();

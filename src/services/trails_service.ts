@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
+import { Float32, Int8, Uint16, Uint32, Uint64 } from "typed_numeric";
 import { Buffer } from "@std/io";
 import Service from "../service.ts";
 import Server from "../server.ts";
@@ -11,7 +11,7 @@ export type TrailRecord = Record<number, Trail>;
 export type RelationRecord = Record<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
-export default class TrailsService implements Service {
+export default class Trails_service implements Service {
   trails!: TrailRecord;
   relations!: RelationRecord;
   async init() {
@@ -223,11 +223,7 @@ export class Trail implements TrailModel {
             (this.geometry[i - 1].elev - this.geometry[0].elev)
           ) * 4,
         );
-        buf.writeSync(
-          new Uint8Array([
-            Math.min(Math.max(delta + 128, 0), 255),
-          ]),
-        );
+        buf.writeSync(new Int8(delta).toLeBytes().toTypedArray());
       }
     }
 
