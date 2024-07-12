@@ -33,6 +33,21 @@
   },
   "fmt": {
     "exclude": [
+      "deno-cache/",
+      "drizzle/",
+      "node_modules/",
+      "editor/",
+      "relations/",
+      "reversed/",
+      "scripts/",
+      "venv/",
+      "ways/",
+      "*.md"
+    ]
+  },
+  "lint": {
+    "exclude": [
+      "deno-cache/",
       "drizzle/",
       "node_modules/",
       "editor/",
