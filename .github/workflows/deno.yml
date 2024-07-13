@@ -78,7 +78,6 @@ jobs:
         run: |
           deno coverage --lcov --output=coverage.lcov
           sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.lcov
-          cat coverage.lcov
 
       - name: "Upload test reports"
         uses: actions/upload-artifact@v4
