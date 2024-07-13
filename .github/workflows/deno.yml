@@ -77,6 +77,7 @@ jobs:
       - name: Convert code coverage
         run: |
           deno coverage --lcov --output=coverage.lcov
+          ls /home/runner/work/forest-park-reports-server
           cat coverage.lcov
 
       - name: "Upload test reports"
