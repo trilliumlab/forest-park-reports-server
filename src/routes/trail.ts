@@ -1,6 +1,7 @@
 import { Context, Hono } from "hono";
 import Server from "../server.ts";
 import { TrailList } from "../services/trails_service.ts";
+import logger from "../logger.ts";
 
 const app = new Hono()
   .get("/list", (ctx: Context) => {
@@ -15,7 +16,7 @@ const app = new Hono()
   })
   .get("/:id", (ctx: Context) => {
     const id = +ctx.req.param("id");
-    Server().logger.debug(`Got request with ${id}`);
+    logger.debug(`Got request with ${id}`);
     const trail = Server().trails.trails.get(id);
     if (trail) {
       return ctx.body(trail.encode().bytes());

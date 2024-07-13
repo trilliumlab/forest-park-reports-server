@@ -2,37 +2,46 @@ import * as path from "@std/path";
 import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
 import { Buffer } from "@std/io";
 import Service from "../service.ts";
-import Server from "../server.ts";
 import { clamp } from "../util.ts";
 import { elevationDeltaMultiplier } from "../const.ts";
-
-const waysDir = path.fromFileUrl(import.meta.resolve("../../ways"));
-const relationsDir = path.fromFileUrl(import.meta.resolve("../../relations"));
+import logger from "../logger.ts";
 
 export type TrailRecord = Map<number, Trail>;
 export type RelationRecord = Map<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
-export default class Trails_service implements Service {
+export default class TrailsService implements Service {
   trails!: TrailRecord;
   relations!: RelationRecord;
+  waysDir: string;
+  relationsDir: string;
+
+  constructor(
+    waysDir = path.fromFileUrl(import.meta.resolve("../../ways")),
+    relationsDir = path.fromFileUrl(import.meta.resolve("../../relations")),
+  ) {
+    this.waysDir = waysDir;
+    this.relationsDir = relationsDir;
+  }
+
   async init() {
     await this.loadTrails();
     await this.loadRelations();
   }
+
   async loadTrails() {
     const trails: TrailRecord = new Map();
 
-    for await (const entry of Deno.readDir(waysDir)) {
+    for await (const entry of Deno.readDir(this.waysDir)) {
       const split = entry.name.split(".");
       const system = split[0];
       const extension = split[1];
 
       if (entry.isFile && extension.toLowerCase() == "json") {
-        const file = path.resolve(waysDir, entry.name);
+        const file = path.resolve(this.waysDir, entry.name);
         const osm: OSM = JSON.parse(await Deno.readTextFile(file));
 
-        Server().logger.info(
+        logger.info(
           `Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${
             JSON.stringify(osm.osm3s)
           }`,
@@ -45,18 +54,19 @@ export default class Trails_service implements Service {
     }
     this.trails = trails;
   }
+
   async loadRelations() {
     const relations: RelationRecord = new Map();
-    for await (const entry of Deno.readDir(relationsDir)) {
+    for await (const entry of Deno.readDir(this.relationsDir)) {
       const split = entry.name.split(".");
       const extension = split[1];
 
       if (entry.isFile && extension.toLowerCase() == "json") {
-        const file = path.resolve(relationsDir, entry.name);
+        const file = path.resolve(this.relationsDir, entry.name);
         const relationList: Relation[] = JSON.parse(
           await Deno.readTextFile(file),
         );
-        Server().logger.info(`Loaded ${relationList.length} relations`);
+        logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
           relations.set(relation.id, relation);
         }
@@ -112,12 +122,12 @@ interface Coordinate {
 
 export class Trail implements TrailModel {
   system: string;
-  id: number;
-  type: string;
-  tags: TagsModel;
-  bounds: BoundsModel;
-  nodes: number[];
-  geometry: Coordinate[];
+  id!: number;
+  type!: string;
+  tags!: TagsModel;
+  bounds!: BoundsModel;
+  nodes!: number[];
+  geometry!: Coordinate[];
   // TODO calculate metadata like min and max elevation to bounds, incline and decline, and distance
 
   constructor(
@@ -125,12 +135,7 @@ export class Trail implements TrailModel {
     trailModel: TrailModel,
   ) {
     this.system = system;
-    this.id = trailModel.id;
-    this.type = trailModel.type;
-    this.tags = trailModel.tags;
-    this.bounds = trailModel.bounds;
-    this.nodes = trailModel.nodes;
-    this.geometry = trailModel.geometry;
+    Object.assign(this, trailModel);
   }
 
   /*

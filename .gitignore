@@ -6,7 +6,7 @@ config*.jsonc
 report.xml
 
 # Binary data
-data/
+/data/
 
 # scripts
 cache/
@@ -27,6 +27,9 @@ coverage
 
 # Transpiled files
 build/
+
+# Python
+venv/
 
 # VS Code
 .vscode
