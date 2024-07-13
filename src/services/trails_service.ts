@@ -3,6 +3,8 @@ import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
 import { Buffer } from "@std/io";
 import Service from "../service.ts";
 import Server from "../server.ts";
+import { clamp } from "../util.ts";
+import { elevationDeltaMultiplier } from "../const.ts";
 
 const waysDir = path.fromFileUrl(import.meta.resolve("../../ways"));
 const relationsDir = path.fromFileUrl(import.meta.resolve("../../relations"));
@@ -166,7 +168,7 @@ export class Trail implements TrailModel {
     for first point:
       point elevation (float, le)
     for every other point:
-      point elevation delta * 10 (i8)
+      point elevation delta * 8 (i8)
   */
   encode(buf: Buffer = new Buffer()): Buffer {
     const encoder = new TextEncoder();
@@ -209,20 +211,23 @@ export class Trail implements TrailModel {
     // write geometry data
     buf.writeSync(new Uint16(this.geometry.length).toLeBytes().toTypedArray());
 
+    let elevSum = 0;
     for (const [i, coord] of this.geometry.entries()) {
       buf.writeSync(new Float32(coord.lat).toLeBytes().toTypedArray());
       buf.writeSync(new Float32(coord.lon).toLeBytes().toTypedArray());
       if (i == 0) {
         buf.writeSync(new Float32(coord.elev).toLeBytes().toTypedArray());
       } else {
-        // minimize drift by doing all math with floats
-        // as distance from origin before rounding
-        const delta = Math.round(
-          (
-            (coord.elev - this.geometry[0].elev) -
-            (this.geometry[i - 1].elev - this.geometry[0].elev)
-          ) * 4,
+        // minimize drift by doing all math relative to first height
+        const delta = clamp(
+          Math.round(
+            (coord.elev - this.geometry[0].elev - elevSum) *
+              elevationDeltaMultiplier,
+          ),
+          -128,
+          127,
         );
+        elevSum += delta / elevationDeltaMultiplier;
         buf.writeSync(new Uint8Array([delta < 0 ? delta + 256 : delta]));
       }
     }
