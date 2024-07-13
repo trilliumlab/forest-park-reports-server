@@ -1,0 +1,22 @@
+name: 'Test Report'
+on:
+  workflow_run:
+    workflows: ['Deno CI']                     # runs after CI workflow
+    types:
+      - completed
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      # Report test results
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: Deno Tests            # Name of the check run which will be created
+          path: test-report.xml       # Path to test results
+          reporter: jest-junit

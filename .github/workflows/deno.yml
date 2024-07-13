@@ -1,6 +1,8 @@
-name: Deno CI
+name: 'Deno CI'
 
-on: [push]
+on:
+  - push
+  - pull_request
 
 jobs:
   lint:
@@ -8,15 +10,82 @@ jobs:
     env:
       DENO_DIR: ./deno-cache
     steps:
-      - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x # Run with latest stable Deno.
-      - uses: actions/cache@v3
-        name: Cache Deno packages
+      - name: Cache Deno packages
+        uses: actions/cache@v4
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
           restore-keys: |
             ${{ runner.os }}-deno-cache-
-      - run: deno task check
+      # Runs deno fmt --check, deno lint, and deno check
+      - name: Run linter
+        run: deno task check
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: gh_actions
+          POSTGRES_USER: gh_actions
+          POSTGRES_PASSWORD: gh_actions
+        ports:
+          - 5432:5432
+    env:
+      DENO_DIR: ./deno-cache
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x # Run with latest stable Deno.
+      - name: Cache Deno packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-cache-
+      # Copies the example config with credentials for gh actions db.
+      - name: Create test config
+        run: |
+          cp config.example.jsonc config.jsonc
+          sed -r -i \
+            -e 's/<APPLICATION_NAME>/Trail Eyes Github Actions/g' \
+            -e 's/<DATABASE_HOST>/localhost/g' \
+            -e 's/(<DATABASE_USERNAME>|<DATABASE_PASSWORD>|<DATABASE_NAME>)/gh_actions/g' \
+            -e 's/"ssl": true/"ssl": false/g' \
+            config.jsonc
+          cp config.jsonc config.test.jsonc
+      # Generates drizzle migrations
+      - name: Generate database migrations
+        run: deno task db:generate
+      # Applies drizzle migration
+      - name: Migrate database
+        run: deno task db:migrate
+      # Run deno tests
+      - name: Run tests
+        run: deno task test --junit-path=test-report.xml --coverage
+      # Convert coverage to lcov
+      - name: Convert code coverage
+        run: deno coverage --lcov --output=coverage.lcov
+
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@v4
+        if: success() || failure()        # run this step even if previous step failed
+        with:
+          name: test-results
+          path: |
+            test-report.xml
+            coverage.lcov
+
+      - name: "Upload coverage reports"
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.lcov

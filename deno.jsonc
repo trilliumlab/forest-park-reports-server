@@ -7,12 +7,14 @@
 
     "typed_numeric": "https://raw.githubusercontent.com/trilliumlab/typed_numeric_deno/master/mod.ts",
 
-    "@std/fs": "jsr:@std/fs@^1.0.0-rc.4",
+    // Standard library
+    "@std/fs": "jsr:@std/fs@^1.0.0-rc.5",
     "@std/io": "jsr:@std/io@^0.224.3",
     "@std/jsonc": "jsr:@std/jsonc@^1.0.0-rc.2",
-    "@std/log": "jsr:@std/log@^0.224.4",
-    "@std/path": "jsr:@std/path@^1.0.0-rc.4",
+    "@std/log": "jsr:@std/log@^0.224.5",
+    "@std/path": "jsr:@std/path@^1.0.0",
     "@std/uuid": "jsr:@std/uuid@^1.0.0",
+    "@std/assert": "jsr:@std/assert@^1.0.0",
 
     // Dev dependencies
     "drizzle-kit": "npm:drizzle-kit@^0.23.0",
@@ -22,12 +24,13 @@
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check src/**/*.ts",
     "cache": "deno cache -r src/server.ts",
-    "start": "deno task ensure-pre-commit-hooks && deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
-    "watch": "deno task ensure-pre-commit-hooks && deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
+    "test": "LOG_LEVEL=CRITICAL DENO_TEST=1 deno test --allow-env --allow-sys --allow-read --allow-write --allow-net test/",
+    "start": "LOG_LEVEL=DEBUG deno task ensure-pre-commit-hooks && deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
+    "watch": "LOG_LEVEL=DEBUG deno task ensure-pre-commit-hooks && deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
     "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",
     "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
     "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate",
-    "ensure-pre-commit-hooks": "deno run --allow-env --allow-read --allow-run .pre-commit-install.ts"
+    "ensure-pre-commit-hooks": "deno run --allow-env --allow-sys --allow-read --allow-run .pre-commit-install.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

@@ -1,8 +1,12 @@
 # secrets
-config.jsonc
+config*.jsonc
+!config.example.jsonc
+
+# Tests
+test-report.xml
 
 # Binary data
-data/
+/data/
 
 # scripts
 cache/
@@ -20,9 +24,13 @@ node_modules/
 
 # Coverage
 coverage
+coverage.lcov
 
 # Transpiled files
 build/
+
+# Python
+venv/
 
 # VS Code
 .vscode

@@ -12,6 +12,7 @@ import {
   updates as updatesTable,
 } from "../database/schema.ts";
 import { eq } from "drizzle-orm";
+import Server from "../server.ts";
 
 export default class DbService implements Service {
   async init() {}
@@ -43,6 +44,12 @@ export default class DbService implements Service {
     const hazards: Hazard[] = [];
     await hazardRows.forEachParallel(async (row) => {
       const hazard = hazardRowToHazard(row);
+      // Remove the image uuid if no image uploaded.
+      if (hazard.image) {
+        if (!await Server().images.imageExists(hazard.image)) {
+          hazard.image = undefined;
+        }
+      }
       if (!active) {
         hazards.push(hazard);
       } else {

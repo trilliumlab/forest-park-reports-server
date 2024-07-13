@@ -12,6 +12,7 @@
 
 [![Build Status][actions-shield]][actions-url]
 [![Last Commit][last-commit-shield]][last-commit-url]
+[![Code Coverage][codecov-shield]][codecov-url]
 [![License][license-shield]][license-url]
 </div>
 
@@ -104,6 +105,8 @@ Trail Eyes is provided under the MIT license. See [LICENSE.md](LICENSE.md)
 [last-commit-shield]: https://img.shields.io/github/last-commit/trilliumlab/forest-park-reports-server/dev?style=for-the-badge
 [license-url]: LICENSE.md
 [license-shield]: https://img.shields.io/github/license/trilliumlab/forest-park-reports-server?style=for-the-badge
+[codecov-url]: https://app.codecov.io/gh/trilliumlab/forest-park-reports-server/tree/dev
+[codecov-shield]: https://img.shields.io/codecov/c/gh/trilliumlab/forest-park-reports-server/dev?style=for-the-badge
 
 <!-- Dependency Links -->
 [deno-dep-url]: https://deno.com/

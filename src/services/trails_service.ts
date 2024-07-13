@@ -1,62 +1,74 @@
 import * as path from "@std/path";
-import { Float32, Int8, Uint16, Uint32, Uint64 } from "typed_numeric";
+import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
 import { Buffer } from "@std/io";
 import Service from "../service.ts";
-import Server from "../server.ts";
+import { clamp } from "../util.ts";
+import { elevationDeltaMultiplier } from "../const.ts";
+import logger from "../logger.ts";
 
-const waysDir = path.fromFileUrl(import.meta.resolve("../../ways"));
-const relationsDir = path.fromFileUrl(import.meta.resolve("../../relations"));
-
-export type TrailRecord = Record<number, Trail>;
-export type RelationRecord = Record<number, Relation>;
+export type TrailRecord = Map<number, Trail>;
+export type RelationRecord = Map<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
-export default class Trails_service implements Service {
+export default class TrailsService implements Service {
   trails!: TrailRecord;
   relations!: RelationRecord;
+  waysDir: string;
+  relationsDir: string;
+
+  constructor(
+    waysDir = path.fromFileUrl(import.meta.resolve("../../ways")),
+    relationsDir = path.fromFileUrl(import.meta.resolve("../../relations")),
+  ) {
+    this.waysDir = waysDir;
+    this.relationsDir = relationsDir;
+  }
+
   async init() {
     await this.loadTrails();
     await this.loadRelations();
   }
-  async loadTrails() {
-    const trails: TrailRecord = {};
 
-    for await (const entry of Deno.readDir(waysDir)) {
+  async loadTrails() {
+    const trails: TrailRecord = new Map();
+
+    for await (const entry of Deno.readDir(this.waysDir)) {
       const split = entry.name.split(".");
       const system = split[0];
       const extension = split[1];
 
       if (entry.isFile && extension.toLowerCase() == "json") {
-        const file = path.resolve(waysDir, entry.name);
+        const file = path.resolve(this.waysDir, entry.name);
         const osm: OSM = JSON.parse(await Deno.readTextFile(file));
 
-        Server().logger.info(
+        logger.info(
           `Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${
             JSON.stringify(osm.osm3s)
           }`,
         );
 
         for (const trailModel of osm.elements) {
-          trails[trailModel.id] = new Trail(system, trailModel);
+          trails.set(trailModel.id, new Trail(system, trailModel));
         }
       }
     }
     this.trails = trails;
   }
+
   async loadRelations() {
-    const relations: RelationRecord = {};
-    for await (const entry of Deno.readDir(relationsDir)) {
+    const relations: RelationRecord = new Map();
+    for await (const entry of Deno.readDir(this.relationsDir)) {
       const split = entry.name.split(".");
       const extension = split[1];
 
       if (entry.isFile && extension.toLowerCase() == "json") {
-        const file = path.resolve(relationsDir, entry.name);
+        const file = path.resolve(this.relationsDir, entry.name);
         const relationList: Relation[] = JSON.parse(
           await Deno.readTextFile(file),
         );
-        Server().logger.info(`Loaded ${relationList.length} relations`);
+        logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
-          relations[relation.id] = relation;
+          relations.set(relation.id, relation);
         }
       }
     }
@@ -110,12 +122,12 @@ interface Coordinate {
 
 export class Trail implements TrailModel {
   system: string;
-  id: number;
-  type: string;
-  tags: TagsModel;
-  bounds: BoundsModel;
-  nodes: number[];
-  geometry: Coordinate[];
+  id!: number;
+  type!: string;
+  tags!: TagsModel;
+  bounds!: BoundsModel;
+  nodes!: number[];
+  geometry!: Coordinate[];
   // TODO calculate metadata like min and max elevation to bounds, incline and decline, and distance
 
   constructor(
@@ -123,12 +135,7 @@ export class Trail implements TrailModel {
     trailModel: TrailModel,
   ) {
     this.system = system;
-    this.id = trailModel.id;
-    this.type = trailModel.type;
-    this.tags = trailModel.tags;
-    this.bounds = trailModel.bounds;
-    this.nodes = trailModel.nodes;
-    this.geometry = trailModel.geometry;
+    Object.assign(this, trailModel);
   }
 
   /*
@@ -166,7 +173,7 @@ export class Trail implements TrailModel {
     for first point:
       point elevation (float, le)
     for every other point:
-      point elevation delta * 10 (i8)
+      point elevation delta * 8 (i8)
   */
   encode(buf: Buffer = new Buffer()): Buffer {
     const encoder = new TextEncoder();
@@ -209,21 +216,24 @@ export class Trail implements TrailModel {
     // write geometry data
     buf.writeSync(new Uint16(this.geometry.length).toLeBytes().toTypedArray());
 
+    let elevSum = 0;
     for (const [i, coord] of this.geometry.entries()) {
       buf.writeSync(new Float32(coord.lat).toLeBytes().toTypedArray());
       buf.writeSync(new Float32(coord.lon).toLeBytes().toTypedArray());
       if (i == 0) {
         buf.writeSync(new Float32(coord.elev).toLeBytes().toTypedArray());
       } else {
-        // minimize drift by doing all math with floats
-        // as distance from origin before rounding
-        const delta = Math.round(
-          (
-            (coord.elev - this.geometry[0].elev) -
-            (this.geometry[i - 1].elev - this.geometry[0].elev)
-          ) * 4,
+        // minimize drift by doing all math relative to first height
+        const delta = clamp(
+          Math.round(
+            (coord.elev - this.geometry[0].elev - elevSum) *
+              elevationDeltaMultiplier,
+          ),
+          -128,
+          127,
         );
-        buf.writeSync(new Int8(delta).toLeBytes().toTypedArray());
+        elevSum += delta / elevationDeltaMultiplier;
+        buf.writeSync(new Uint8Array([delta < 0 ? delta + 256 : delta]));
       }
     }
 
@@ -232,8 +242,8 @@ export class Trail implements TrailModel {
 }
 
 export class TrailList {
-  trails: Trail[];
-  constructor(trails: Trail[]) {
+  trails: Iterable<Trail>;
+  constructor(trails: Iterable<Trail>) {
     this.trails = trails;
   }
 

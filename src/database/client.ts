@@ -2,7 +2,7 @@
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../database/schema.ts";
-import { config } from "../config.ts";
+import config from "../config.ts";
 
 const pool = new pg.Pool({
   ...config.database,
