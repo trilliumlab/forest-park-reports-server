@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { Float32, Int8, Uint16, Uint32, Uint64 } from "typed_numeric";
+import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
 import { Buffer } from "@std/io";
 import Service from "../service.ts";
 import Server from "../server.ts";
@@ -223,7 +223,7 @@ export class Trail implements TrailModel {
             (this.geometry[i - 1].elev - this.geometry[0].elev)
           ) * 4,
         );
-        buf.writeSync(new Int8(delta).toLeBytes().toTypedArray());
+        buf.writeSync(new Uint8Array([delta < 0 ? delta + 256 : delta]));
       }
     }
 
