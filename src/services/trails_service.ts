@@ -7,8 +7,8 @@ import Server from "../server.ts";
 const waysDir = path.fromFileUrl(import.meta.resolve("../../ways"));
 const relationsDir = path.fromFileUrl(import.meta.resolve("../../relations"));
 
-export type TrailRecord = Record<number, Trail>;
-export type RelationRecord = Record<number, Relation>;
+export type TrailRecord = Map<number, Trail>;
+export type RelationRecord = Map<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
 export default class Trails_service implements Service {
@@ -19,7 +19,7 @@ export default class Trails_service implements Service {
     await this.loadRelations();
   }
   async loadTrails() {
-    const trails: TrailRecord = {};
+    const trails: TrailRecord = new Map();
 
     for await (const entry of Deno.readDir(waysDir)) {
       const split = entry.name.split(".");
@@ -37,14 +37,14 @@ export default class Trails_service implements Service {
         );
 
         for (const trailModel of osm.elements) {
-          trails[trailModel.id] = new Trail(system, trailModel);
+          trails.set(trailModel.id, new Trail(system, trailModel));
         }
       }
     }
     this.trails = trails;
   }
   async loadRelations() {
-    const relations: RelationRecord = {};
+    const relations: RelationRecord = new Map();
     for await (const entry of Deno.readDir(relationsDir)) {
       const split = entry.name.split(".");
       const extension = split[1];
@@ -56,7 +56,7 @@ export default class Trails_service implements Service {
         );
         Server().logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
-          relations[relation.id] = relation;
+          relations.set(relation.id, relation);
         }
       }
     }
@@ -232,8 +232,8 @@ export class Trail implements TrailModel {
 }
 
 export class TrailList {
-  trails: Trail[];
-  constructor(trails: Trail[]) {
+  trails: Iterable<Trail>;
+  constructor(trails: Iterable<Trail>) {
     this.trails = trails;
   }
 
