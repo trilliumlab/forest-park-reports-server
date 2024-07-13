@@ -27,7 +27,7 @@
     "test": "DENO_TEST=1 deno test --allow-env --allow-sys --allow-read --allow-write --allow-net test/",
     "start": "deno task ensure-pre-commit-hooks && deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
     "watch": "deno task ensure-pre-commit-hooks && deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
-    "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",
+    "db:deps": "deno cache --allow-scripts -r --node-modules-dir drizzle.config.ts",
     "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
     "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate",
     "ensure-pre-commit-hooks": "deno run --allow-env --allow-sys --allow-read --allow-run .pre-commit-install.ts"

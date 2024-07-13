@@ -66,10 +66,15 @@ jobs:
         run: deno task test --junit-path report.xml
 
         # Report test results
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()    # run this step even if previous step failed
+#      - name: Test Report
+#        uses: dorny/test-reporter@v1
+#        if: success() || failure()    # run this step even if previous step failed
+#        with:
+#          name: JEST Tests            # Name of the check run which will be created
+#          path: report.xml    # Path to test results
+#          reporter: jest-junit
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure() # always run even if the previous step fails
         with:
-          name: JEST Tests            # Name of the check run which will be created
-          path: report.xml    # Path to test results
-          reporter: jest-junit
+          report_paths: 'report.xml'
