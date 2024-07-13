@@ -3,7 +3,7 @@ config*.jsonc
 !config.example.jsonc
 
 # Tests
-report.xml
+test-report.xml
 
 # Binary data
 /data/
@@ -24,6 +24,7 @@ node_modules/
 
 # Coverage
 coverage
+coverage.lcov
 
 # Transpiled files
 build/

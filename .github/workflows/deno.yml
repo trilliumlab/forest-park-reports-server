@@ -70,11 +70,22 @@ jobs:
         run: deno task db:migrate
       # Run deno tests
       - name: Run tests
-        run: deno task test --junit-path test-report.xml
+        run: deno task test --junit-path=test-report.xml --coverage
+      # Convert coverage to lcov
+      - name: Convert code coverage
+        run: deno coverage --lcov --output=coverage.lcov
 
-      - name: "Upload test results"
+      - name: "Upload test reports"
         uses: actions/upload-artifact@v4
         if: success() || failure()        # run this step even if previous step failed
         with:
           name: test-results
-          path: test-report.xml
+          path: |
+            test-report.xml
+            coverage.lcov
+
+      - name: "Upload coverage reports"
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.lcov
