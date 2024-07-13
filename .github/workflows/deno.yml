@@ -9,31 +9,51 @@ jobs:
       DENO_DIR: ./deno-cache
     steps:
       - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x # Run with latest stable Deno.
-      - uses: actions/cache@v3
-        name: Cache Deno packages
+      - name: Cache Deno packages
+        uses: actions/cache@v3
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
           restore-keys: |
             ${{ runner.os }}-deno-cache-
-      - run: deno task check
+      - name: Run linter
+        run: deno task check
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
     env:
       DENO_DIR: ./deno-cache
     steps:
       - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x # Run with latest stable Deno.
-      - uses: actions/cache@v3
-        name: Cache Deno packages
+      - name: Cache Deno packages
+        uses: actions/cache@v3
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
           restore-keys: |
             ${{ runner.os }}-deno-cache-
-      - run: deno task test
+      - name: Create test config
+        run: |
+          cp config.example.jsonc config.test.jsonc
+          sed -r -i '' \
+            -e 's/<APPLICATION_NAME>/Trail Eyes Github Actions/g' \
+            -e 's/<DATABASE_HOST>/localhost/g' \
+            -e 's/(<DATABASE_USERNAME>|<DATABASE_PASSWORD>|<DATABASE_NAME>)/postgres/g' \
+            -e 's/"ssl": true/"ssl": false/g' \
+            config.test.jsonc
+      - name: Run tests
+        run: deno task test --junit-path report.xml

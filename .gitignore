@@ -2,6 +2,9 @@
 config*.jsonc
 !config.example.jsonc
 
+# Tests
+report.xml
+
 # Binary data
 data/
 
