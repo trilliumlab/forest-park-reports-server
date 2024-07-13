@@ -24,7 +24,7 @@
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check src/**/*.ts",
     "cache": "deno cache -r src/server.ts",
-    "test": "deno test --allow-env --allow-sys --allow-read --allow-write --allow-net test/",
+    "test": "DENO_TEST=1 deno test --allow-env --allow-sys --allow-read --allow-write --allow-net test/",
     "start": "deno task ensure-pre-commit-hooks && deno run --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
     "watch": "deno task ensure-pre-commit-hooks && deno run --watch --allow-env --allow-sys --allow-read --allow-write --allow-net src/server.ts",
     "db:deps": "deno cache -r --node-modules-dir drizzle.config.ts",

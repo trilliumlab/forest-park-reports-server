@@ -16,3 +16,10 @@ Object.defineProperty(Array.prototype, "forEachParallel", {
     await Promise.all(this.map((item) => func(item)));
   },
 });
+
+/**
+ * A base {@link Error} class that automatically sets name to the name of the subclass.
+ */
+export class ErrorBase extends Error {
+  name = this.constructor.name;
+}

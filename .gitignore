@@ -1,5 +1,6 @@
 # secrets
-config.jsonc
+config*.jsonc
+!config.example.jsonc
 
 # Binary data
 data/

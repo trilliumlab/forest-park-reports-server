@@ -1,12 +1,11 @@
 import { Hono } from "hono";
 import * as log from "@std/log";
-import { config } from "./config.ts";
+import config from "./config.ts";
 import Decorators from "./decorators.ts";
 import routes from "./routes.ts";
 import DbService from "./services/db_service.ts";
 import Trails_service from "./services/trails_service.ts";
 import ImageService from "./services/image_service.ts";
-import "./util.ts";
 
 class ForestParkServer {
   logger: log.Logger;
