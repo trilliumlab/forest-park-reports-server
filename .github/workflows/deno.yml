@@ -75,7 +75,9 @@ jobs:
         run: deno task test --junit-path=test-report.xml --coverage
       # Convert coverage to lcov
       - name: Convert code coverage
-        run: deno coverage --lcov --output=coverage.lcov
+        run: |
+          deno coverage --lcov --output=coverage.lcov
+          cat coverage.lcov
 
       - name: "Upload test reports"
         uses: actions/upload-artifact@v4

@@ -2,9 +2,6 @@
 config*.jsonc
 !config.example.jsonc
 
-# Tests
-test-report.xml
-
 # Binary data
 /data/
 
@@ -14,6 +11,9 @@ cache/
 # server specific
 images/
 
+# Deno
+deno-cache
+
 # Logs
 logs
 *.log
@@ -21,6 +21,9 @@ npm-debug.log*
 
 # Dependencies
 node_modules/
+
+# Tests
+test-report.xml
 
 # Coverage
 coverage
