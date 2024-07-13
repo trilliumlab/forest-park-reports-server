@@ -547,6 +547,11 @@
     }
   },
   "remote": {
+    "https://deno.land/std@0.224.0/assert/assert.ts": "09d30564c09de846855b7b071e62b5974b001bb72a4b797958fe0660e7849834",
+    "https://deno.land/std@0.224.0/assert/assertion_error.ts": "ba8752bd27ebc51f723702fac2f54d3e94447598f54264a6653d6413738a8917",
+    "https://deno.land/std@0.224.0/json/common.ts": "33f1a4f39a45e2f9f357823fd0b5cf88b63fb4784b8c9a28f8120f70a20b23e9",
+    "https://deno.land/std@0.224.0/jsonc/mod.ts": "1756f094e00894ec27416b4fcccbcf445e73892a83cf1937de3aad7de2d5da7c",
+    "https://deno.land/std@0.224.0/jsonc/parse.ts": "06fbe10f0bb0cba684f7902bf7de5126b16eb0e5a82220c98a4b86675c7f9cff",
     "https://deno.land/std@0.55.0/fmt/printf.ts": "b14ae79d3f9a1b09a9be956dfd40e48ab929f9fc75ace96403919a349d8b6f07",
     "https://raw.githubusercontent.com/trilliumlab/typed_numeric_deno/master/depends.ts": "f450aaf13bd60937f06550d3decc01f5fe0341dc6a6b220002a97efac615ea86",
     "https://raw.githubusercontent.com/trilliumlab/typed_numeric_deno/master/mod.ts": "09702defa687bd3126cd8f6d4b548b33125502a536e4ad6d399fbdf8e371d6be",
