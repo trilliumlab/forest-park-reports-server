@@ -79,12 +79,17 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success() || failure()        # run this step even if previous step failed
         with:
-          name: test-results
-          path: |
-            test-report.xml
-            coverage.lcov
+          name: test-report
+          path: test-report.xml
 
-      - name: "Upload coverage reports"
+      - name: "Upload coverage report"
+        uses: actions/upload-artifact@v4
+        if: success() || failure()        # run this step even if previous step failed
+        with:
+          name: coverage-report
+          path: coverage.lcov
+
+      - name: "Upload to codecov"
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
