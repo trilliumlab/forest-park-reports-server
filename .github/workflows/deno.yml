@@ -56,7 +56,7 @@ jobs:
             -e 's/<DATABASE_HOST>/localhost/g' \
             -e 's/(<DATABASE_USERNAME>|<DATABASE_PASSWORD>|<DATABASE_NAME>)/gh_actions/g' \
             -e 's/"ssl": true/"ssl": false/g' \
-            config.test.jsonc
+            config.jsonc
           cp config.jsonc config.test.jsonc
       - name: Generate database migrations
         run: deno task db:generate
@@ -64,3 +64,12 @@ jobs:
         run: deno task db:migrate
       - name: Run tests
         run: deno task test --junit-path report.xml
+
+        # Report test results
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: JEST Tests            # Name of the check run which will be created
+          path: report.xml    # Path to test results
+          reporter: jest-junit
