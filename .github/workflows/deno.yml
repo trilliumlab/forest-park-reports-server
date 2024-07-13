@@ -8,13 +8,13 @@ jobs:
     env:
       DENO_DIR: ./deno-cache
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Deno
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x # Run with latest stable Deno.
       - name: Cache Deno packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
@@ -28,19 +28,21 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gh_actions
+          POSTGRES_USER: gh_actions
+          POSTGRES_PASSWORD: gh_actions
         ports:
           - 5432:5432
     env:
       DENO_DIR: ./deno-cache
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Deno
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x # Run with latest stable Deno.
       - name: Cache Deno packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
@@ -48,12 +50,17 @@ jobs:
             ${{ runner.os }}-deno-cache-
       - name: Create test config
         run: |
-          cp config.example.jsonc config.test.jsonc
-          sed -r -i '' \
+          cp config.example.jsonc config.jsonc
+          sed -r -i \
             -e 's/<APPLICATION_NAME>/Trail Eyes Github Actions/g' \
             -e 's/<DATABASE_HOST>/localhost/g' \
-            -e 's/(<DATABASE_USERNAME>|<DATABASE_PASSWORD>|<DATABASE_NAME>)/postgres/g' \
+            -e 's/(<DATABASE_USERNAME>|<DATABASE_PASSWORD>|<DATABASE_NAME>)/gh_actions/g' \
             -e 's/"ssl": true/"ssl": false/g' \
             config.test.jsonc
+          cp config.jsonc config.test.jsonc
+      - name: Generate database migrations
+        run: deno task db:generate
+      - name: Migrate database
+        run: deno task db:migrate
       - name: Run tests
         run: deno task test --junit-path report.xml
