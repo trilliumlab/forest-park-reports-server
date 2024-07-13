@@ -77,8 +77,7 @@ jobs:
       - name: Convert code coverage
         run: |
           deno coverage --lcov --output=coverage.lcov
-          sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g'
-          ls /home/runner/work/forest-park-reports-server
+          sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.lcov
           cat coverage.lcov
 
       - name: "Upload test reports"
