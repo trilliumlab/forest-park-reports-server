@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import Server from "../../src/server.ts";
 import { testClient } from "hono/testing";
+import app from "../../src/routes.ts";
 
-const client = testClient(Server().app);
+const client = testClient(app);
 
 // This is needed since npm:pg uses setTimeout on closing db connections.
 const dbTestOptions = {

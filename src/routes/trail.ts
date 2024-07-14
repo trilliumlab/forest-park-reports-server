@@ -2,6 +2,7 @@ import { Context, Hono } from "hono";
 import Server from "../server.ts";
 import { TrailList } from "../services/trails_service.ts";
 import logger from "../logger.ts";
+import * as decorators from "../decorators.ts";
 
 const app = new Hono()
   .get("/list", (ctx: Context) => {
@@ -21,7 +22,7 @@ const app = new Hono()
     if (trail) {
       return ctx.body(trail.encode().bytes());
     } else {
-      return Server().decorators.notFound(ctx);
+      return decorators.notFound(ctx);
     }
   });
 

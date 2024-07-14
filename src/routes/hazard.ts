@@ -2,6 +2,7 @@ import { Context, Hono } from "hono";
 import { Hazard, HazardUpdate } from "../models/hazard.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import Server from "../server.ts";
+import * as decorators from "../decorators.ts";
 
 const app = new Hono()
   .post("/update", async (ctx: Context) => {
@@ -12,7 +13,7 @@ const app = new Hono()
     };
     // check that the associated hazard actually exists
     if ((await Server().database.fetchHazard(update.hazard)) == null) {
-      return Server().decorators.notFound(ctx);
+      return decorators.notFound(ctx);
     }
     await Server().database.updateHazard(update);
     return ctx.json(update);
@@ -25,7 +26,7 @@ const app = new Hono()
     };
     // check that the associated trail actually exists
     if (!Server().trails.trails.has(hazard.location.trail)) {
-      return Server().decorators.notFound(ctx);
+      return decorators.notFound(ctx);
     }
     await Server().database.saveHazard(hazard);
     return ctx.json(hazard);
@@ -39,13 +40,13 @@ const app = new Hono()
     const body = await ctx.req.parseBody();
     const data = body.file;
     if (!(data instanceof File)) {
-      return Server().decorators.badRequest(
+      return decorators.badRequest(
         ctx,
         "multipart/form-data included file must be a File.",
       );
     }
     if (await Server().images.imageExists(uuid)) {
-      return Server().decorators.conflict(ctx, "Image already exists.");
+      return decorators.conflict(ctx, "Image already exists.");
     } else {
       await Server().images.saveImage(data, uuid);
     }
@@ -53,7 +54,7 @@ const app = new Hono()
   .get("/image/:uuid", async (ctx: Context) => {
     const uuid = ctx.req.param("uuid");
     if (!await Server().images.imageExists(uuid)) {
-      return Server().decorators.notFound(
+      return decorators.notFound(
         ctx,
         `Could not find image with uuid '${uuid}'.`,
       );
@@ -64,11 +65,11 @@ const app = new Hono()
   .get("/:uuid", async (ctx: Context) => {
     const uuid = ctx.req.param("uuid");
     if (!uuidv1.validate(uuid)) {
-      return Server().decorators.badRequest(ctx, "Invalid UUID");
+      return decorators.badRequest(ctx, "Invalid UUID");
     }
     const updates = await Server().database.fetchHazardUpdates(uuid);
     if (updates.length == 0) {
-      return Server().decorators.notFound(ctx);
+      return decorators.notFound(ctx);
     }
     return ctx.json(updates);
   });
