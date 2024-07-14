@@ -1,7 +1,7 @@
 import * as fs from "@std/fs";
 import * as path from "@std/path";
 import config from "../config.ts";
-import dbService from "../services/db_service.ts";
+import dbService from "../service/db_service.ts";
 
 const imageDir = path.fromFileUrl(import.meta.resolve("../../images"));
 

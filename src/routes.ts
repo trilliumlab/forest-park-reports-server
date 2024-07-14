@@ -1,6 +1,6 @@
 import { Context, Hono } from "hono";
-import trail from "./routes/trail.ts";
-import hazard from "./routes/hazard.ts";
+import trail from "./route/trail.ts";
+import hazard from "./route/hazard.ts";
 
 const app = new Hono()
   .get("/ping", (ctx: Context) => ctx.text(`Pong!`))

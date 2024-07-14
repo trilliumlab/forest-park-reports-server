@@ -3,7 +3,7 @@ import {
   hazardRowToHazard,
   hazardToHazardRow,
   HazardUpdate,
-} from "../models/hazard.ts";
+} from "../model/hazard.ts";
 import { db } from "../database/client.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import {
@@ -11,7 +11,7 @@ import {
   updates as updatesTable,
 } from "../database/schema.ts";
 import { eq } from "drizzle-orm";
-import imageService from "../services/image_service.ts";
+import imageService from "../service/image_service.ts";
 
 export class DbService {
   async saveHazard(hazard: Hazard) {

@@ -1,10 +1,10 @@
 import { Context, Hono } from "hono";
-import { Hazard, HazardUpdate } from "../models/hazard.ts";
+import { Hazard, HazardUpdate } from "../model/hazard.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import * as decorators from "../decorators.ts";
-import dbService from "../services/db_service.ts";
-import trailsService from "../services/trails_service.ts";
-import imageService from "../services/image_service.ts";
+import dbService from "../service/db_service.ts";
+import trailsService from "../service/trails_service.ts";
+import imageService from "../service/image_service.ts";
 
 const app = new Hono()
   .post("/update", async (ctx: Context) => {
