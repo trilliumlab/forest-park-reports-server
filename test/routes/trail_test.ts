@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
-import { app } from "../../src/server.ts";
+import server from "../../src/server.ts";
 import { testClient } from "hono/testing";
 import trailsService, { TrailList } from "../../src/services/trails_service.ts";
 
-const client = testClient(app);
+const client = testClient(server);
 
 Deno.test("GET /trail/list", async () => {
   const res = await client.trail.list.$get();
