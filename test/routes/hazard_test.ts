@@ -23,15 +23,19 @@ Deno.test("GET /hazard/active", dbTestOptions, async () => {
 });
 
 // Makes sure /hazard/image/:uuid endpoint works when given an invalid uuid.
-Deno.test("GET /hazard/image/:uuid - invalid uuid", dbTestOptions, async () => {
-  const uuid = "this-is-not-a-uuid";
-  const res = await client.hazard.image[":uuid"].$get({
-    param: { uuid },
-  });
-  assertEquals(res.status, 404);
-  assertEquals(await res.json(), {
-    code: 404,
-    error: "Resource Not Found",
-    message: `Could not find image with uuid '${uuid}'.`,
-  });
-});
+Deno.test(
+  "GET /hazard/image/{uuid} - invalid uuid",
+  dbTestOptions,
+  async () => {
+    const uuid = "this-is-not-a-uuid";
+    const res = await client.hazard.image[":uuid"].$get({
+      param: { uuid },
+    });
+    assertEquals(res.status, 404);
+    assertEquals(await res.json(), {
+      code: 404,
+      error: "Resource Not Found",
+      message: `Could not find image with uuid '${uuid}'.`,
+    });
+  },
+);

@@ -643,8 +643,7 @@
       "npm:hono@^4.4.13",
       "npm:jsonc-simple-parser@^3.0.0",
       "npm:lookpath@^1.2.2",
-      "npm:pg@^8.12.0",
-      "npm:zod@^3.23.8"
+      "npm:pg@^8.12.0"
     ]
   }
 }

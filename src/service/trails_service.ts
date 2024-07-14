@@ -4,6 +4,7 @@ import { Buffer } from "@std/io";
 import { clamp } from "../util.ts";
 import { elevationDeltaMultiplier } from "../const.ts";
 import logger from "../logger.ts";
+import { Relation, TrailRelationsSchema } from "../schema/trail.ts";
 
 export type TrailRecord = Map<number, Trail>;
 export type RelationRecord = Map<number, Relation>;
@@ -62,9 +63,9 @@ export class TrailsService {
 
       if (entry.isFile && extension.toLowerCase() == "json") {
         const file = path.resolve(this.relationsDir, entry.name);
-        const relationList: Relation[] = JSON.parse(
+        const relationList = TrailRelationsSchema.parse(JSON.parse(
           await Deno.readTextFile(file),
-        );
+        ));
         logger.info(`Loaded ${relationList.length} relations`);
         for (const relation of relationList) {
           relations.set(relation.id, relation);
@@ -73,13 +74,6 @@ export class TrailsService {
     }
     this.relations = relations;
   }
-}
-
-interface Relation {
-  type: string;
-  id: number;
-  tags: Record<string, string>;
-  members: number[];
 }
 
 interface OSM {

@@ -1,26 +1,37 @@
+import { TypedResponse } from "hono";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { TrailList } from "../service/trails_service.ts";
 import logger from "../logger.ts";
 import * as decorators from "../decorator.ts";
 import trailsService from "../service/trails_service.ts";
+import {
+  trailAllRoute,
+  trailIdRoute,
+  trailListRoute,
+  trailRelationsRoute,
+} from "../schema/trail.ts";
+
+type OkBinaryResponse = TypedResponse<Uint8Array, 200, string>;
 
 const routes = new OpenAPIHono()
-  .get("/list", (ctx) => {
+  .openapi(trailListRoute, (ctx) => {
     return ctx.json(Array.from(trailsService.trails.keys()));
   })
-  .get("/all", (ctx) => {
+  .openapi(trailAllRoute, (ctx) => {
     const trailList = new TrailList(trailsService.trails.values());
-    return ctx.body(trailList.encode().bytes());
+    ctx.header("Content-Type", "application/octet-stream");
+    return ctx.body(trailList.encode().bytes()) as unknown as OkBinaryResponse;
   })
-  .get("/relations", (ctx) => {
+  .openapi(trailRelationsRoute, (ctx) => {
     return ctx.json(Array.from(trailsService.relations.values()));
   })
-  .get("/:id", (ctx) => {
-    const id = +ctx.req.param("id");
+  .openapi(trailIdRoute, (ctx) => {
+    const { id } = ctx.req.valid("param");
     logger.debug(`Got request with ${id}`);
     const trail = trailsService.trails.get(id);
     if (trail) {
-      return ctx.body(trail.encode().bytes());
+      ctx.header("Content-Type", "application/octet-stream");
+      return ctx.body(trail.encode().bytes()) as unknown as OkBinaryResponse;
     } else {
       return decorators.notFound(ctx);
     }

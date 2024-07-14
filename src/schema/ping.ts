@@ -1,11 +1,11 @@
 import { createRoute, z } from "@hono/zod-openapi";
 
-const PingSchema = z.string().openapi({
-  example: "Pong!",
-});
+export const PingSchema = z.enum(["Pong!"]);
 
 export const pingRoute = createRoute({
-  description: "Ping the server.",
+  summary: "Ping the server",
+  description:
+    "Ping the server to ensure it is running. This will always return `Pong!` when the server is online.",
   method: "get",
   path: "/ping",
   responses: {
@@ -15,7 +15,7 @@ export const pingRoute = createRoute({
           schema: PingSchema,
         },
       },
-      description: "Server online.",
+      description: "Server online",
     },
   },
 });

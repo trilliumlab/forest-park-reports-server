@@ -1,10 +1,17 @@
 import { Context } from "hono";
+import { z } from "@hono/zod-openapi";
 
 export interface ErrorResponse {
   code: number;
   error: string;
   message?: string;
 }
+
+export const ErrorSchema = z.object({
+  code: z.number(),
+  error: z.string(),
+  message: z.ostring(),
+});
 
 export function notFound(ctx: Context, message?: string) {
   return ctx.json({ code: 404, error: "Resource Not Found", message }, 404);

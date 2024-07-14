@@ -27,7 +27,7 @@ Deno.test("GET /trail/relations", async () => {
   );
 });
 
-Deno.test("GET /trail/:id", async () => {
+Deno.test("GET /trail/{id}", async () => {
   for (const [id, trail] of trailsService.trails.entries()) {
     const res = await client.trail[":id"].$get({
       param: { id: id.toString() },
