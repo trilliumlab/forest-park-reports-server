@@ -1,7 +1,7 @@
 import { Context, Hono } from "hono";
 import { Hazard, HazardUpdate } from "../models/hazard.ts";
 import { v1 as uuidv1 } from "@std/uuid";
-import Server from "../server.ts";
+import { Server } from "../server.ts";
 import * as decorators from "../decorators.ts";
 
 const app = new Hono()

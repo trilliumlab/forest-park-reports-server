@@ -29,13 +29,13 @@ class ForestParkServer {
   }
 }
 
-let server: ForestParkServer | null;
-export default function Server() {
-  if (server) {
-    return server;
+let fpServer: ForestParkServer | null;
+export function Server() {
+  if (fpServer) {
+    return fpServer;
   }
-  server = new ForestParkServer();
-  return server;
+  fpServer = new ForestParkServer();
+  return fpServer;
 }
 
 await Server().initialize();

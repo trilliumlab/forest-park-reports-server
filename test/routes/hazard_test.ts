@@ -1,7 +1,6 @@
 import { assertEquals } from "@std/assert";
-import Server from "../../src/server.ts";
+import { app, Server } from "../../src/server.ts";
 import { testClient } from "hono/testing";
-import app from "../../src/routes.ts";
 
 const client = testClient(app);
 

@@ -1,7 +1,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import TrailsService, { TrailList } from "../../src/services/trails_service.ts";
 import * as path from "@std/path";
-import Server from "../../src/server.ts";
+import { Server } from "../../src/server.ts";
 
 const trailService = new TrailsService(
   path.fromFileUrl(import.meta.resolve("../../test_data/ways_test")),

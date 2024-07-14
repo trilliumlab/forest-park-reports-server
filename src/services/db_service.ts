@@ -12,7 +12,7 @@ import {
   updates as updatesTable,
 } from "../database/schema.ts";
 import { eq } from "drizzle-orm";
-import Server from "../server.ts";
+import { Server } from "../server.ts";
 
 export default class DbService implements Service {
   async init() {}

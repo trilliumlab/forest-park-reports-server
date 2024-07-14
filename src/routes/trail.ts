@@ -1,5 +1,5 @@
 import { Context, Hono } from "hono";
-import Server from "../server.ts";
+import { Server } from "../server.ts";
 import { TrailList } from "../services/trails_service.ts";
 import logger from "../logger.ts";
 import * as decorators from "../decorators.ts";

@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import Server, { app } from "../../src/server.ts";
+import { app, Server } from "../../src/server.ts";
 import { testClient } from "hono/testing";
 import { TrailList } from "../../src/services/trails_service.ts";
 
