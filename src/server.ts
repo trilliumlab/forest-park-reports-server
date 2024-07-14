@@ -1,8 +1,8 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import config from "./config.ts";
-import { notFound } from "./decorators.ts";
-import routes from "./routes.ts";
+import { notFound } from "./decorator.ts";
+import routes from "./route.ts";
 
 export const server = new OpenAPIHono()
   .doc31("/openapi", {

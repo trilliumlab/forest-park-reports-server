@@ -1,7 +1,7 @@
 import { Context, Hono } from "hono";
 import { TrailList } from "../service/trails_service.ts";
 import logger from "../logger.ts";
-import * as decorators from "../decorators.ts";
+import * as decorators from "../decorator.ts";
 import trailsService from "../service/trails_service.ts";
 
 const app = new Hono()

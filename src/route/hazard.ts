@@ -1,7 +1,7 @@
 import { Context, Hono } from "hono";
 import { Hazard, HazardUpdate } from "../model/hazard.ts";
 import { v1 as uuidv1 } from "@std/uuid";
-import * as decorators from "../decorators.ts";
+import * as decorators from "../decorator.ts";
 import dbService from "../service/db_service.ts";
 import trailsService from "../service/trails_service.ts";
 import imageService from "../service/image_service.ts";
