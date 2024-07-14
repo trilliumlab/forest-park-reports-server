@@ -1,7 +1,6 @@
 import * as path from "@std/path";
 import { Float32, Uint16, Uint32, Uint64 } from "typed_numeric";
 import { Buffer } from "@std/io";
-import Service from "../service.ts";
 import { clamp } from "../util.ts";
 import { elevationDeltaMultiplier } from "../const.ts";
 import logger from "../logger.ts";
@@ -10,7 +9,7 @@ export type TrailRecord = Map<number, Trail>;
 export type RelationRecord = Map<number, Relation>;
 
 /** Holds all trail gpx files and trail information */
-export default class TrailsService implements Service {
+export class TrailsService {
   trails!: TrailRecord;
   relations!: RelationRecord;
   waysDir: string;
@@ -266,3 +265,7 @@ export class TrailList {
     return buf;
   }
 }
+
+const trailsService = new TrailsService();
+await trailsService.init();
+export default trailsService;

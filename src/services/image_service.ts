@@ -1,12 +1,11 @@
 import * as fs from "@std/fs";
 import * as path from "@std/path";
-import Service from "../service.ts";
-import { Server } from "../server.ts";
 import config from "../config.ts";
+import dbService from "../services/db_service.ts";
 
 const imageDir = path.fromFileUrl(import.meta.resolve("../../images"));
 
-export default class ImageService implements Service {
+export class ImageService {
   async init() {
     if (!await fs.exists(imageDir)) {
       await fs.ensureDir(imageDir);
@@ -36,7 +35,7 @@ export default class ImageService implements Service {
   taggedImages: string[] = [];
   async cleanImages() {
     for await (const entry of Deno.readDir(imageDir)) {
-      if (!await Server().database.imageInDatabase(entry.name)) {
+      if (!await dbService.imageInDatabase(entry.name)) {
         if (this.taggedImages.includes(entry.name)) {
           console.log(`deleting tagged image: ${entry.name}`);
           const filePath = path.resolve(imageDir, entry.name);
@@ -50,3 +49,7 @@ export default class ImageService implements Service {
     }
   }
 }
+
+const imageService = new ImageService();
+await imageService.init();
+export default imageService;

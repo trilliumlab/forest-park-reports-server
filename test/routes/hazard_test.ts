@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
-import { app, Server } from "../../src/server.ts";
+import { app } from "../../src/server.ts";
 import { testClient } from "hono/testing";
+import dbService from "../../src/services/db_service.ts";
 
 const client = testClient(app);
 
@@ -13,7 +14,7 @@ const dbTestOptions = {
 // Makes sure /hazard/active endpoint returns all active hazards in db.
 Deno.test("GET /hazard/active", dbTestOptions, async () => {
   const res = await client.hazard.active.$get();
-  const hazards = (await Server().database.fetchHazards(true))
+  const hazards = (await dbService.fetchHazards(true))
     .map(({ time, ...hazard }) => ({
       time: time.toISOString(),
       ...hazard,
