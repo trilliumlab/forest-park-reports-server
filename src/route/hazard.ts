@@ -1,4 +1,4 @@
-import { Context, Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { Hazard, HazardUpdate } from "../model/hazard.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import * as decorators from "../decorator.ts";
@@ -6,8 +6,8 @@ import dbService from "../service/db_service.ts";
 import trailsService from "../service/trails_service.ts";
 import imageService from "../service/image_service.ts";
 
-const app = new Hono()
-  .post("/update", async (ctx: Context) => {
+const server = new OpenAPIHono()
+  .post("/update", async (ctx) => {
     const update: HazardUpdate = {
       ...await ctx.req.json(),
       uuid: uuidv1.generate(),
@@ -20,7 +20,7 @@ const app = new Hono()
     await dbService.updateHazard(update);
     return ctx.json(update);
   })
-  .post("/new", async (ctx: Context) => {
+  .post("/new", async (ctx) => {
     const hazard: Hazard = {
       ...await ctx.req.json(),
       uuid: uuidv1.generate(),
@@ -33,11 +33,11 @@ const app = new Hono()
     await dbService.saveHazard(hazard);
     return ctx.json(hazard);
   })
-  .get("/active", async (ctx: Context) => {
+  .get("/active", async (ctx) => {
     const hazards = await dbService.fetchHazards(true);
     return ctx.json(hazards);
   })
-  .put("/image/:uuid", async (ctx: Context) => {
+  .put("/image/:uuid", async (ctx) => {
     const uuid = ctx.req.param("uuid");
     const body = await ctx.req.parseBody();
     const data = body.file;
@@ -53,7 +53,7 @@ const app = new Hono()
       await imageService.saveImage(data, uuid);
     }
   })
-  .get("/image/:uuid", async (ctx: Context) => {
+  .get("/image/:uuid", async (ctx) => {
     const uuid = ctx.req.param("uuid");
     if (!await imageService.imageExists(uuid)) {
       return decorators.notFound(
@@ -64,7 +64,7 @@ const app = new Hono()
     const reader = await imageService.getImage(uuid);
     return ctx.body(reader);
   })
-  .get("/:uuid", async (ctx: Context) => {
+  .get("/:uuid", async (ctx) => {
     const uuid = ctx.req.param("uuid");
     if (!uuidv1.validate(uuid)) {
       return decorators.badRequest(ctx, "Invalid UUID");
@@ -76,4 +76,4 @@ const app = new Hono()
     return ctx.json(updates);
   });
 
-export default app;
+export default server;
