@@ -1,4 +1,4 @@
-import { Context, Hono } from "hono";
+import { Context } from "hono";
 
 export interface ErrorResponse {
   code: number;
@@ -6,9 +6,6 @@ export interface ErrorResponse {
   message?: string;
 }
 
-export function register(server: Hono) {
-  server.notFound(notFound);
-}
 export function notFound(ctx: Context, message?: string) {
   return ctx.json({ code: 404, error: "Resource Not Found", message }, 404);
 }
