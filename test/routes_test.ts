@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import server from "../src/server.ts";
+import { server } from "../src/server.ts";
 import { testClient } from "hono/testing";
 
 const client = testClient(server);

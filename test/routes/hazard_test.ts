@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import server from "../../src/server.ts";
+import { server } from "../../src/server.ts";
 import { testClient } from "hono/testing";
 import dbService from "../../src/services/db_service.ts";
 
