@@ -1,5 +1,5 @@
 import { assertEquals, assertExists } from "@std/assert";
-import { TrailList, TrailsService } from "../../src/services/trails_service.ts";
+import { TrailList, TrailsService } from "../../src/service/trails_service.ts";
 import * as path from "@std/path";
 
 const trailService = new TrailsService(
