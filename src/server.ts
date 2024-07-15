@@ -12,7 +12,7 @@ export const server = new OpenAPIHono()
       title: "Trail Eyes Server Api",
     },
   })
-  .get("/docs", swaggerUI({ url: "/openapi" }))
+  .get("/docs", swaggerUI({ url: config.swagger.schemaUrl }))
   .route("/", routes)
   .notFound(notFound);
 

@@ -7,6 +7,9 @@ export interface TrailEyesConfig {
     host: string;
     port: number;
   };
+  swagger: {
+    schemaUrl: string;
+  };
   database: {
     maxConnections?: number;
     applicationName?: string;

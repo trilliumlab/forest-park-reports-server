@@ -3,6 +3,9 @@
     "host": "0.0.0.0",
     "port": 8000
   },
+  "swagger": {
+    "schemaUrl": "/openapi"
+  },
   "database": {
     // Maximum number of database connections to keep open
     "maxConnections": 10,
