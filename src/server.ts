@@ -5,6 +5,7 @@ import { normalize } from "@std/path";
 import config from "./config.ts";
 import { notFound } from "./decorator.ts";
 import routes from "./route.ts";
+import { scalarFixBackgroundCss } from "./const.ts";
 
 export const server = new OpenAPIHono()
   .doc31("/openapi", {
@@ -21,6 +22,7 @@ export const server = new OpenAPIHono()
     apiReference({
       pageTitle: "Trail Eyes API Reference",
       theme: "kepler",
+      customCss: scalarFixBackgroundCss,
       spec: {
         url: normalize(`${config.http.baseUrl}/openapi`),
       },
