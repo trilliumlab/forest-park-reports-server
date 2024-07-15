@@ -73,7 +73,7 @@ const server = new OpenAPIHono()
     if (updates.length == 0) {
       return decorators.notFound(ctx);
     }
-    return ctx.json(updates);
+    return ctx.json(updates, 200);
   });
 
 export default server;
