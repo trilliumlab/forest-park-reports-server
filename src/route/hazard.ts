@@ -1,15 +1,23 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { Hazard, HazardUpdate } from "../model/hazard.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import * as decorators from "../decorator.ts";
 import dbService from "../service/db_service.ts";
 import trailsService from "../service/trails_service.ts";
 import imageService from "../service/image_service.ts";
+import { OkBinaryResponse } from "../util.ts";
+import {
+  getImageUuidRoute,
+  hazardActiveRoute,
+  hazardNewRoute,
+  hazardUpdateRoute,
+  hazardUuidRoute,
+  putImageUuidRoute,
+} from "../schema/hazard.ts";
 
 const server = new OpenAPIHono()
-  .post("/update", async (ctx) => {
-    const update: HazardUpdate = {
-      ...await ctx.req.json(),
+  .openapi(hazardUpdateRoute, async (ctx) => {
+    const update = {
+      ...ctx.req.valid("json"),
       uuid: uuidv1.generate(),
       time: new Date(),
     };
@@ -18,11 +26,11 @@ const server = new OpenAPIHono()
       return decorators.notFound(ctx);
     }
     await dbService.updateHazard(update);
-    return ctx.json(update);
+    return ctx.json(update, 200);
   })
-  .post("/new", async (ctx) => {
-    const hazard: Hazard = {
-      ...await ctx.req.json(),
+  .openapi(hazardNewRoute, async (ctx) => {
+    const hazard = {
+      ...ctx.req.valid("json"),
       uuid: uuidv1.generate(),
       time: new Date(),
     };
@@ -31,29 +39,23 @@ const server = new OpenAPIHono()
       return decorators.notFound(ctx);
     }
     await dbService.saveHazard(hazard);
-    return ctx.json(hazard);
+    return ctx.json(hazard, 200);
   })
-  .get("/active", async (ctx) => {
+  .openapi(hazardActiveRoute, async (ctx) => {
     const hazards = await dbService.fetchHazards(true);
-    return ctx.json(hazards);
+    return ctx.json(hazards, 200);
   })
-  .put("/image/:uuid", async (ctx) => {
-    const uuid = ctx.req.param("uuid");
-    const body = await ctx.req.parseBody();
-    const data = body.file;
-    if (!(data instanceof File)) {
-      return decorators.badRequest(
-        ctx,
-        "multipart/form-data included file must be a File.",
-      );
-    }
+  .openapi(putImageUuidRoute, async (ctx) => {
+    const { uuid } = ctx.req.valid("param");
+    const { file } = ctx.req.valid("form");
     if (await imageService.imageExists(uuid)) {
       return decorators.conflict(ctx, "Image already exists.");
     } else {
-      await imageService.saveImage(data, uuid);
+      await imageService.saveImage(file, uuid);
+      return ctx.body(null, 200);
     }
   })
-  .get("/image/:uuid", async (ctx) => {
+  .openapi(getImageUuidRoute, async (ctx) => {
     const uuid = ctx.req.param("uuid");
     if (!await imageService.imageExists(uuid)) {
       return decorators.notFound(
@@ -62,13 +64,11 @@ const server = new OpenAPIHono()
       );
     }
     const reader = await imageService.getImage(uuid);
-    return ctx.body(reader);
+    ctx.header("Content-Type", "image/jpeg");
+    return ctx.body(reader, 200) as unknown as OkBinaryResponse;
   })
-  .get("/:uuid", async (ctx) => {
-    const uuid = ctx.req.param("uuid");
-    if (!uuidv1.validate(uuid)) {
-      return decorators.badRequest(ctx, "Invalid UUID");
-    }
+  .openapi(hazardUuidRoute, async (ctx) => {
+    const { uuid } = ctx.req.valid("param");
     const updates = await dbService.fetchHazardUpdates(uuid);
     if (updates.length == 0) {
       return decorators.notFound(ctx);

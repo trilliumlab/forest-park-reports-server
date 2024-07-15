@@ -1,9 +1,4 @@
-import {
-  Hazard,
-  hazardRowToHazard,
-  hazardToHazardRow,
-  HazardUpdate,
-} from "../model/hazard.ts";
+import { hazardRowToHazard, hazardToHazardRow } from "../model/hazard.ts";
 import { db } from "../database/client.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import {
@@ -12,6 +7,7 @@ import {
 } from "../database/schema.ts";
 import { eq } from "drizzle-orm";
 import imageService from "../service/image_service.ts";
+import { Hazard, HazardUpdate } from "../schema/hazard.ts";
 
 export class DbService {
   async saveHazard(hazard: Hazard) {

@@ -1,12 +1,13 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { ErrorSchema } from "../decorator.ts";
+import { NotFoundSchema } from "../decorator.ts";
 
-export const TrailListSchema = z.number().array().openapi({
+export const TrailListSchema = z.number().int().nonnegative().array().openapi({
   example: [105407026, 105407029, 105407044],
 });
 
 export const trailListRoute = createRoute({
   summary: "Gets all trail IDs",
+  tags: ["trail"],
   method: "get",
   path: "/list",
   responses: {
@@ -28,6 +29,7 @@ export const TrailAllSchema = z.instanceof(Uint8Array).openapi({
 
 export const trailAllRoute = createRoute({
   summary: "Gets all trails",
+  tags: ["trail"],
   method: "get",
   path: "/all",
   responses: {
@@ -44,10 +46,10 @@ export const trailAllRoute = createRoute({
 
 export const TrailRelationsSchema = z.array(
   z.object({
-    type: z.enum(["relation"]),
+    type: z.literal("relation"),
     id: z.number(),
     tags: z.record(z.string(), z.string()),
-    members: z.number().array(),
+    members: z.number().int().nonnegative().array(),
   }),
 ).openapi({
   example: [{
@@ -75,6 +77,7 @@ export type Relation = z.infer<typeof TrailRelationsSchema.element>;
 
 export const trailRelationsRoute = createRoute({
   summary: "Gets all relations",
+  tags: ["trail"],
   method: "get",
   path: "/relations",
   responses: {
@@ -90,7 +93,7 @@ export const trailRelationsRoute = createRoute({
 });
 
 export const TrailIdParamsSchema = z.object({
-  id: z.coerce.number().openapi({
+  id: z.coerce.number().int().nonnegative().openapi({
     param: {
       name: "id",
       in: "path",
@@ -106,6 +109,7 @@ export const TrailIdSchema = z.instanceof(Uint8Array).openapi({
 
 export const trailIdRoute = createRoute({
   summary: "Gets a trail by ID",
+  tags: ["trail"],
   method: "get",
   path: "/{id}",
   request: {
@@ -124,12 +128,7 @@ export const trailIdRoute = createRoute({
       description: "Trail with given ID not found",
       content: {
         "application/json": {
-          schema: ErrorSchema.openapi({
-            example: {
-              code: 404,
-              error: "Resource Not Found",
-            },
-          }),
+          schema: NotFoundSchema,
         },
       },
     },

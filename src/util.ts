@@ -1,3 +1,5 @@
+import { TypedResponse } from "hono";
+
 // array extensions
 declare global {
   interface Array<T> {
@@ -39,3 +41,5 @@ export class ErrorBase extends Error {
 export function clamp(val: number, min: number, max: number) {
   return Math.min(Math.max(val, min), max);
 }
+
+export type OkBinaryResponse = TypedResponse<Uint8Array, 200, string>;

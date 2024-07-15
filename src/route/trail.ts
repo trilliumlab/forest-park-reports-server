@@ -1,17 +1,15 @@
-import { TypedResponse } from "hono";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { TrailList } from "../service/trails_service.ts";
 import logger from "../logger.ts";
 import * as decorators from "../decorator.ts";
 import trailsService from "../service/trails_service.ts";
+import { OkBinaryResponse } from "../util.ts";
 import {
   trailAllRoute,
   trailIdRoute,
   trailListRoute,
   trailRelationsRoute,
 } from "../schema/trail.ts";
-
-type OkBinaryResponse = TypedResponse<Uint8Array, 200, string>;
 
 const routes = new OpenAPIHono()
   .openapi(trailListRoute, (ctx) => {
