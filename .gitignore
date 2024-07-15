@@ -35,13 +35,11 @@ build/
 # Python
 venv/
 
-# VS Code
-.vscode
-!.vscode/tasks.js
-
-# JetBrains IDEs
+# IDE files
+.vscode/
 .idea/
 *.iml
+.zed/
 
 # Optional npm cache directory
 .npm

@@ -1,21 +1,15 @@
-import {
-  Hazard,
-  hazardRowToHazard,
-  hazardToHazardRow,
-  HazardUpdate,
-} from "../models/hazard.ts";
+import { hazardRowToHazard, hazardToHazardRow } from "../model/hazard.ts";
 import { db } from "../database/client.ts";
-import Service from "../service.ts";
 import { v1 as uuidv1 } from "@std/uuid";
 import {
   hazards as hazardsTable,
   updates as updatesTable,
 } from "../database/schema.ts";
 import { eq } from "drizzle-orm";
-import Server from "../server.ts";
+import imageService from "../service/image_service.ts";
+import { Hazard, HazardUpdate } from "../schema/hazard.ts";
 
-export default class DbService implements Service {
-  async init() {}
+export class DbService {
   async saveHazard(hazard: Hazard) {
     const row = hazardToHazardRow(hazard);
     await db.transaction(async (tx) => {
@@ -46,7 +40,7 @@ export default class DbService implements Service {
       const hazard = hazardRowToHazard(row);
       // Remove the image uuid if no image uploaded.
       if (hazard.image) {
-        if (!await Server().images.imageExists(hazard.image)) {
+        if (!await imageService.imageExists(hazard.image)) {
           hazard.image = undefined;
         }
       }
@@ -81,3 +75,5 @@ export default class DbService implements Service {
     });
   }
 }
+
+export default new DbService();

@@ -1,7 +1,6 @@
 import { assertEquals, assertExists } from "@std/assert";
-import TrailsService, { TrailList } from "../../src/services/trails_service.ts";
+import { TrailList, TrailsService } from "../../src/service/trails_service.ts";
 import * as path from "@std/path";
-import Server from "../../src/server.ts";
 
 const trailService = new TrailsService(
   path.fromFileUrl(import.meta.resolve("../../test_data/ways_test")),
@@ -27,6 +26,6 @@ Deno.test("TrailList.encode()", async () => {
   const expected = await Deno.readFile(
     path.fromFileUrl(import.meta.resolve("../../test_data/TrailList.expected")),
   );
-  const trailList = new TrailList(Server().trails.trails.values());
+  const trailList = new TrailList(trailService.trails.values());
   assertEquals(expected, trailList.encode().bytes());
 });

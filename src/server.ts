@@ -1,53 +1,25 @@
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { swaggerUI } from "@hono/swagger-ui";
 import config from "./config.ts";
-import Decorators from "./decorators.ts";
-import routes from "./routes.ts";
-import DbService from "./services/db_service.ts";
-import TrailsService from "./services/trails_service.ts";
-import ImageService from "./services/image_service.ts";
+import { notFound } from "./decorator.ts";
+import routes from "./route.ts";
 
-class ForestParkServer {
-  app = new Hono().route("/", routes);
-  // construct services
-  trails = new TrailsService();
-  images = new ImageService();
-  database = new DbService();
-  decorators = new Decorators();
+export const server = new OpenAPIHono()
+  .doc31("/openapi", {
+    openapi: "3.1.0",
+    info: {
+      version: "0.1.0",
+      title: "Trail Eyes Server Api",
+    },
+  })
+  .get("/docs", swaggerUI({ url: "/openapi" }))
+  .route("/", routes)
+  .notFound(notFound);
 
-  // This is where we run any async code that needs
-  // to be run before the http server can be started
-  async initialize() {
-    // starts all services
-    await this.initServices();
-    // routes and decorators can depend on service initialization and are registered at the end.
-    this.decorators.register(this.app);
-  }
-  async initServices() {
-    // initialize the database service first as other services may use the database
-    await this.database.init();
-    await this.trails.init();
-    await this.images.init();
-  }
-  // Runs the server blocking
-  run() {
-    Deno.serve({
-      port: config.http.port,
-      hostname: config.http.host,
-      handler: this.app.fetch,
-    });
-  }
-}
-
-let server: ForestParkServer | null;
-export default function Server() {
-  if (server) {
-    return server;
-  }
-  server = new ForestParkServer();
-  return server;
-}
-
-await Server().initialize();
 if (import.meta.main) {
-  Server().run();
+  Deno.serve({
+    port: config.http.port,
+    hostname: config.http.host,
+    handler: server.fetch,
+  });
 }
