@@ -2,7 +2,7 @@
   "imports": {
     "hono": "npm:hono@^4.4.13",
     "@hono/zod-openapi": "npm:@hono/zod-openapi@^0.14.9",
-    "@hono/swagger-ui": "npm:@hono/swagger-ui@^0.4.0",
+    "@scalar/hono-api-reference": "npm:@scalar/hono-api-reference@^0.5.107",
     "drizzle-orm": "npm:drizzle-orm@^0.32.0",
     "@types/pg": "npm:@types/pg@^8.11.6",
     "pg": "npm:pg@^8.12.0",

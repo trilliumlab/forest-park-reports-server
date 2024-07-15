@@ -1,5 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { swaggerUI } from "@hono/swagger-ui";
+import { cors } from "hono/cors";
+import { apiReference } from "@scalar/hono-api-reference";
+import { normalize } from "@std/path";
 import config from "./config.ts";
 import { notFound } from "./decorator.ts";
 import routes from "./route.ts";
@@ -11,8 +13,19 @@ export const server = new OpenAPIHono()
       version: "0.1.0",
       title: "Trail Eyes Server Api",
     },
+    servers: config.openapi.servers.map((url) => ({ url })),
   })
-  .get("/docs", swaggerUI({ url: config.swagger.schemaUrl }))
+  .use("/*", cors())
+  .get(
+    "/docs",
+    apiReference({
+      pageTitle: "Trail Eyes API Reference",
+      theme: "kepler",
+      spec: {
+        url: normalize(`${config.http.baseUrl}/openapi`),
+      },
+    }),
+  )
   .route("/", routes)
   .notFound(notFound);
 
