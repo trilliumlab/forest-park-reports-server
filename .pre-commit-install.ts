@@ -2,6 +2,11 @@ import { lookpath } from "lookpath";
 import * as path from "@std/path";
 import { exists } from "@std/fs";
 
+// Only run in a development environment
+if (Deno.env.get("DENO_PROD") === "1") {
+  Deno.exit(0);
+}
+
 async function runCommand(cmd: string, args: string[], silent = false) {
   const dcmd = new Deno.Command(cmd, {
     args,
