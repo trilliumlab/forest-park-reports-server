@@ -2,6 +2,10 @@
 config*.jsonc
 !config.example.jsonc
 
+# Deployment related
+logs.sh
+update.sh
+
 # Binary data
 /data/
 
