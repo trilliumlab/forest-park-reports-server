@@ -36,7 +36,7 @@ Deno.test(
     assertEquals(await res.json(), {
       code: NotFoundSchema.shape.code.value,
       error: NotFoundSchema.shape.error.value,
-      message: `Could not find image with uuid '${uuid}'.`,
+      message: `Could not find image with uuid '${uuid}'!`,
     });
   },
 );
