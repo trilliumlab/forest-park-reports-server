@@ -5,7 +5,7 @@ import { hazardTypeEnum } from "../database/schema.ts";
 export const HazardUpdateBodySchema = z.object({
   hazard: z.string().uuid(),
   active: z.boolean(),
-  blurHash: z.string().base64().nullish(),
+  blurHash: z.string().nullish(),
   image: z.string().uuid().nullish(),
 });
 
@@ -58,7 +58,7 @@ export const HazardNewBodySchema = z.object({
     lat: z.number(),
     long: z.number(),
   }),
-  blurHash: z.string().base64().nullish(),
+  blurHash: z.string().nullish(),
   image: z.string().uuid().nullish(),
 });
 
