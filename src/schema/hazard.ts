@@ -2,16 +2,14 @@ import { createRoute, z } from "@hono/zod-openapi";
 import { ConflictSchema, NotFoundSchema } from "../decorator.ts";
 import { hazardTypeEnum } from "../database/schema.ts";
 
-export const HazardUpdateBodySchema = z.object({
+export const HazardUpdateSchema = z.object({
   hazard: z.string().uuid(),
   active: z.boolean(),
+  uuid: z.string().uuid(),
+  time: z.coerce.date(),
   blurHash: z.string().nullish(),
   image: z.string().uuid().nullish(),
-});
-
-export const HazardUpdateSchema = HazardUpdateBodySchema.extend({
-  uuid: z.string().uuid(),
-  time: z.date(),
+  offline: z.boolean().default(false),
 });
 
 export type HazardUpdate = z.infer<typeof HazardUpdateSchema>;
@@ -25,7 +23,7 @@ export const hazardUpdateRoute = createRoute({
     body: {
       content: {
         "application/json": {
-          schema: HazardUpdateBodySchema,
+          schema: HazardUpdateSchema,
         },
       },
     },
@@ -58,16 +56,19 @@ export const HazardNewBodySchema = z.object({
     lat: z.number(),
     long: z.number(),
   }),
+  uuid: z.string().uuid(),
+  time: z.coerce.date(),
   blurHash: z.string().nullish(),
   image: z.string().uuid().nullish(),
+  offline: z.boolean().default(false),
 });
 
-export const HazardNewSchema = HazardNewBodySchema.merge(z.object({
-  uuid: z.string().uuid(),
-  time: z.date(),
-}));
+export type Hazard = z.infer<typeof HazardNewBodySchema>;
 
-export type Hazard = z.infer<typeof HazardNewSchema>;
+export const HazardNewSchema = z.object({
+  hazard: HazardNewBodySchema,
+  updates: HazardUpdateSchema.array(),
+});
 
 export const hazardNewRoute = createRoute({
   summary: "Creates a new hazard",
@@ -93,17 +94,25 @@ export const hazardNewRoute = createRoute({
       },
     },
     404: {
-      description: "Hazard with given uuid not found",
+      description: "Trail with given ID not found",
       content: {
         "application/json": {
           schema: NotFoundSchema,
         },
       },
     },
+    409: {
+      description: "Hazard with given uuid already exists",
+      content: {
+        "application/json": {
+          schema: ConflictSchema,
+        },
+      },
+    },
   },
 });
 
-export const HazardActiveSchema = HazardNewSchema.array();
+export const HazardActiveSchema = HazardNewBodySchema.array();
 
 export const hazardActiveRoute = createRoute({
   summary: "Get all active hazards",

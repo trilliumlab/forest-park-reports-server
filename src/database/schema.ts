@@ -20,6 +20,7 @@ export const hazards = pgTable("hazards", {
   node: integer("node").notNull(),
   lat: doublePrecision("lat").notNull(),
   long: doublePrecision("long").notNull(),
+  offline: boolean("offline").default(false).notNull(),
 });
 
 export const updates = pgTable("updates", {
@@ -29,4 +30,5 @@ export const updates = pgTable("updates", {
   active: boolean("active").notNull(),
   blurHash: text("blur_hash"),
   image: uuid("image"),
+  offline: boolean("offline").default(false).notNull(),
 });

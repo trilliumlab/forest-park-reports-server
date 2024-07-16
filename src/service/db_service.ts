@@ -10,22 +10,25 @@ import imageService from "../service/image_service.ts";
 import { Hazard, HazardUpdate } from "../schema/hazard.ts";
 
 export class DbService {
-  async saveHazard(hazard: Hazard) {
+  async saveHazard(hazard: Hazard): Promise<HazardUpdate> {
+    const update = {
+      uuid: uuidv1.generate(),
+      hazard: hazard.uuid,
+      time: hazard.time,
+      active: true,
+      offline: false,
+      blurHash: hazard.blurHash,
+      image: hazard.image,
+    };
     const row = hazardToHazardRow(hazard);
     await db.transaction(async (tx) => {
       await db.insert(hazardsTable).values(row).onConflictDoUpdate({
         target: hazardsTable.uuid,
         set: row,
       });
-      await this.updateHazard({
-        uuid: uuidv1.generate(),
-        hazard: hazard.uuid,
-        time: hazard.time,
-        active: true,
-        blurHash: hazard.blurHash,
-        image: hazard.image,
-      }, tx);
+      await this.updateHazard(update, tx);
     });
+    return update;
   }
   async updateHazard(update: HazardUpdate, tx = db) {
     await tx.insert(updatesTable).values(update).onConflictDoUpdate({
