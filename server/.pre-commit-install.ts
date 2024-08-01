@@ -52,7 +52,7 @@ if (!await lookpath("pre-commit")) {
 
 // Ensure pre-commit hooks are installed
 const preCommitPath = path.fromFileUrl(
-  import.meta.resolve("./.git/hooks/pre-commit"),
+  import.meta.resolve("../.git/hooks/pre-commit"),
 );
 if (!await exists(preCommitPath)) {
   console.log(

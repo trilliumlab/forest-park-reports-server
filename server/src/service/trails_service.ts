@@ -13,15 +13,12 @@ export type RelationRecord = Map<number, Relation>;
 export class TrailsService {
   trails!: TrailRecord;
   relations!: RelationRecord;
-  waysDir: string;
-  relationsDir: string;
+  dataDir: string;
 
   constructor(
-    waysDir = path.fromFileUrl(import.meta.resolve("../../ways")),
-    relationsDir = path.fromFileUrl(import.meta.resolve("../../relations")),
+    dataDir = path.fromFileUrl(import.meta.resolve("../../../data")),
   ) {
-    this.waysDir = waysDir;
-    this.relationsDir = relationsDir;
+    this.dataDir = dataDir;
   }
 
   async init() {
@@ -32,24 +29,23 @@ export class TrailsService {
   async loadTrails() {
     const trails: TrailRecord = new Map();
 
-    for await (const entry of Deno.readDir(this.waysDir)) {
-      const split = entry.name.split(".");
-      const system = split[0];
-      const extension = split[1];
+    for await (const entry of Deno.readDir(this.dataDir)) {
+      if (entry.isFile) {
+        continue;
+      }
+      const systemDir = path.join(this.dataDir, entry.name);
+      const waysFile = path.join(systemDir, "ways.json");
 
-      if (entry.isFile && extension.toLowerCase() == "json") {
-        const file = path.resolve(this.waysDir, entry.name);
-        const osm: OSM = JSON.parse(await Deno.readTextFile(file));
+      const osm: OSM = JSON.parse(await Deno.readTextFile(waysFile));
 
-        logger.info(
-          `Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${
-            JSON.stringify(osm.osm3s)
-          }`,
-        );
+      logger.info(
+        `Loaded overpass query: [version: ${osm.version}, generator: ${osm.generator}, osm3s: ${
+          JSON.stringify(osm.osm3s)
+        }`,
+      );
 
-        for (const trailModel of osm.elements) {
-          trails.set(trailModel.id, new Trail(system, trailModel));
-        }
+      for (const trailModel of osm.elements) {
+        trails.set(trailModel.id, new Trail(entry.name, trailModel));
       }
     }
     this.trails = trails;
@@ -57,19 +53,20 @@ export class TrailsService {
 
   async loadRelations() {
     const relations: RelationRecord = new Map();
-    for await (const entry of Deno.readDir(this.relationsDir)) {
-      const split = entry.name.split(".");
-      const extension = split[1];
 
-      if (entry.isFile && extension.toLowerCase() == "json") {
-        const file = path.resolve(this.relationsDir, entry.name);
-        const relationList = TrailRelationsSchema.parse(JSON.parse(
-          await Deno.readTextFile(file),
-        ));
-        logger.info(`Loaded ${relationList.length} relations`);
-        for (const relation of relationList) {
-          relations.set(relation.id, relation);
-        }
+    for await (const entry of Deno.readDir(this.dataDir)) {
+      if (entry.isFile) {
+        continue;
+      }
+      const systemDir = path.join(this.dataDir, entry.name);
+      const relationsFile = path.join(systemDir, "relations.json");
+
+      const relationList = TrailRelationsSchema.parse(JSON.parse(
+        await Deno.readTextFile(relationsFile),
+      ));
+      logger.info(`Loaded ${relationList.length} relations`);
+      for (const relation of relationList) {
+        relations.set(relation.id, relation);
       }
     }
     this.relations = relations;
