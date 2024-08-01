@@ -7,12 +7,16 @@ import tkinter as tki
 from CTkListbox import CTkListbox
 from trail_processor import *
 from ordered_set import OrderedSet
-import importlib
+import importlib.util
 import webbrowser
 
-overpass_files = {item.stem: item for item in scripts_dir.iterdir() if item.is_file() and item.suffix == ".overpassql"}
-elevation_scripts = {item.stem: item for item in scripts_dir.iterdir() if item.is_file() and item.suffix == ".py"}
+input_dirs = {item.stem: item for item in input_dir.iterdir()}
+data_dirs = {system: data_dir.joinpath(system) for system in input_dirs.keys()}
+# Ensure all output directories exist
+for system_data_dir in data_dirs.values():
+    system_data_dir.mkdir(exist_ok=True)
 
+# Modules for fetching elevation of a specific trail system
 elevation_modules = {}
 
 
@@ -239,7 +243,7 @@ class App(CTk):
         self.trail_system_menu = CTkOptionMenu(
             self.control_frame,
             command=self.change_tile_server,
-            values=list(overpass_files.keys())
+            values=list(input_dirs.keys())
         )
         self.trail_system_menu.grid(pady=(0, 0), padx=12, row=1, column=0)
 
@@ -405,13 +409,15 @@ class App(CTk):
         self.paths = OrderedSet()
 
         trail_system = self.trail_system_menu.get()
+        system_input_dir = input_dirs[trail_system]
+        system_data_dir = data_dirs[trail_system]
 
         # Load reversed
-        self.reversed = load_json(reversed_dir.joinpath(trail_system + ".json"), [])
+        self.reversed = load_json(system_data_dir.joinpath("reversed.json"), [])
 
         # Fetch trails from overpass
         print(f"Loading trail system {trail_system}")
-        self.osm = fetch_osm(overpass_files[trail_system])
+        self.osm = fetch_osm(system_input_dir.joinpath("query.overpassql"))
 
         print("Fetched OSM Data:")
         print("version: ", self.osm['version'])
@@ -431,7 +437,7 @@ class App(CTk):
             self.paths.add(path)
 
         # Load relations
-        self.relations = load_json(relations_dir.joinpath(trail_system + ".json"), {})
+        self.relations = load_json(system_data_dir.joinpath("relations.json"), {})
 
         # Update UI
         self.update_markers()
@@ -461,6 +467,8 @@ class App(CTk):
 
     def save_ways(self):
         trail_system = self.trail_system_menu.get()
+        system_input_dir = input_dirs[trail_system]
+        system_data_dir = data_dirs[trail_system]
 
         # Fallback method that returns 0
         def get_elevation(coords):
@@ -471,35 +479,41 @@ class App(CTk):
         # If module already loaded for trail system, reuse
         if trail_system in elevation_modules and 'get_elevation' in dir(elevation_modules[trail_system]):
             get_elevation = elevation_modules[trail_system].get_elevation
-        elif trail_system in elevation_scripts:
-            print(f'Loading python module for trail system "{trail_system}".')
-            spec = importlib.util.spec_from_file_location(trail_system, elevation_scripts[trail_system])
-            module = importlib.util.module_from_spec(spec)
-            sys.modules[trail_system] = module
-            spec.loader.exec_module(module)
-            print("Module loaded.")
-            elevation_modules[trail_system] = module
-            if 'get_elevation' in dir(elevation_modules[trail_system]):
-                get_elevation = module.get_elevation
+        else:
+            module_file = system_input_dir.joinpath("elevation.py")
+            if module_file.exists():
+                print(f'Loading python module for trail system "{trail_system}".')
+                spec = importlib.util.spec_from_file_location(trail_system, module_file)
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[trail_system] = module
+                spec.loader.exec_module(module)
+                print("Module loaded.")
+                elevation_modules[trail_system] = module
+                if 'get_elevation' in dir(elevation_modules[trail_system]):
+                    get_elevation = module.get_elevation
 
         if get_elevation == get_elevation_orig:
             # This means the get_elevation is still the fallback method
-            print("Trail system has no python module! All elevations will be set to 0.")
+            print(f'Trail system "{trail_system}" has no python module! All elevations will be set to 0.')
 
         process_osm(self.osm, get_elevation)
-        ways_path = ways_dir.joinpath(trail_system + ".json")
+        ways_path = system_data_dir.joinpath("ways.json")
         save_json(self.osm, ways_path)
         print(f"Ways saved to {ways_path}")
 
     def save_relations(self):
         trail_system = self.trail_system_menu.get()
-        relations_path = relations_dir.joinpath(trail_system + ".json")
+        system_data_dir = data_dirs[trail_system]
+
+        relations_path = system_data_dir.joinpath("relations.json")
         save_json(self.relations, relations_path)
         print(f"Relations saved to {relations_path}")
 
     def save_reversed(self):
         trail_system = self.trail_system_menu.get()
-        reversed_path = reversed_dir.joinpath(trail_system + ".json")
+        system_data_dir = data_dirs[trail_system]
+
+        reversed_path = system_data_dir.joinpath("reversed.json")
         save_json(self.reversed, reversed_path)
         print(f"Reversed saved to {reversed_path}")
 

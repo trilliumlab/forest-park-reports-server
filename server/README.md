@@ -4,22 +4,23 @@
 
 # Trail Eyes Server
 
-  <img src="https://github.com/trilliumlab/forest-park-reports-app/raw/dev/assets/icon/icon.png" alt="Logo" width="80" height="80">
+<img src="https://github.com/trilliumlab/forest-park-reports-app/raw/dev/assets/icon/icon.png" alt="Logo" width="80" height="80">
 
-  The backend for [Trail Eyes App][client-url], written in Deno.
+The backend for [Trail Eyes App][client-url], written in Deno.
 
-  Development sponsored by Portland State University and NSF award CIF-2046175.
+Development sponsored by Portland State University and NSF award CIF-2046175.
 
 [![Build Status][actions-shield]][actions-url]
 [![Last Commit][last-commit-shield]][last-commit-url]
 [![Code Coverage][codecov-shield]][codecov-url]
 [![License][license-shield]][license-url]
+
 </div>
 
 ## About
 
-Trail Eyes is developed in Deno/typescript.
-For more information, see the [Deno Docs][deno-docs-url].
+Trail Eyes is developed in Deno/typescript. For more information, see the
+[Deno Docs][deno-docs-url].
 
 ## How to Build
 
@@ -40,7 +41,8 @@ For more information, see the [Deno Docs][deno-docs-url].
    git checkout dev
    ```
 
-4. Copy the included `config.example.jsonc` to `config.jsonc` and add your PostgreSQL database credentials.
+3. Copy the included `config.example.jsonc` to `config.jsonc` and add your
+   PostgreSQL database credentials.
    ```bash
    cp config.example.jsonc config.jsonc
    ```
@@ -48,11 +50,14 @@ For more information, see the [Deno Docs][deno-docs-url].
 ### Running
 
 To run the server:
+
 ```bash
 deno task start
 ```
 
-You can also configure the server to automatically restart when you make changes:
+You can also configure the server to automatically restart when you make
+changes:
+
 ```bash
 deno task watch
 ```
@@ -79,7 +84,8 @@ forest-park-reports-server
 
 ## Contributing
 
-Contributions are welcomed! If you have any suggestions, feel free to open a pull request.
+Contributions are welcomed! If you have any suggestions, feel free to open a
+pull request.
 
 1. Fork the project.
 2. Create a new branch `git checkout -b feature/new-feature-name`
@@ -94,11 +100,13 @@ Not up for a pull request? Feel free to open an [issue][issues-url].
 Trail Eyes is provided under the MIT license. See [LICENSE.md](LICENSE.md)
 
 <!-- Repository Links -->
+
 [client-url]: https://github.com/trilliumlab/forest-park-reports-app
 [pr-url]: https://github.com/trilliumlab/forest-park-reports-server/pulls
 [issues-url]: https://github.com/trilliumlab/forest-park-reports-server/issues
 
 <!-- Status Links -->
+
 [actions-url]: https://github.com/trilliumlab/forest-park-reports-server/actions/workflows/deno.yml
 [actions-shield]: https://img.shields.io/github/actions/workflow/status/trilliumlab/forest-park-reports-server/deno.yml?style=for-the-badge
 [last-commit-url]: https://github.com/trilliumlab/forest-park-reports-server/commits/dev/
@@ -109,8 +117,10 @@ Trail Eyes is provided under the MIT license. See [LICENSE.md](LICENSE.md)
 [codecov-shield]: https://img.shields.io/sonar/coverage/trilliumlab_forest-park-reports-server?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge
 
 <!-- Dependency Links -->
+
 [deno-dep-url]: https://deno.com/
 [postgresql-dep-url]: https://www.postgresql.org/
 
 <!-- Docs Links -->
+
 [deno-docs-url]: https://docs.deno.com/runtime/manual/

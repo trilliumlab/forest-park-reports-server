@@ -1,6 +1,6 @@
 {
-  "id": "1192aeae-f24b-4e41-9bce-55f345785bf7",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "a9aaeb13-5806-4b63-8a6e-32f89ab9ccfd",
+  "prevId": "1192aeae-f24b-4e41-9bce-55f345785bf7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -50,6 +50,13 @@
           "type": "double precision",
           "primaryKey": false,
           "notNull": true
+        },
+        "offline": {
+          "name": "offline",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
@@ -96,6 +103,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "offline": {
+          "name": "offline",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},

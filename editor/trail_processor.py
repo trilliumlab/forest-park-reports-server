@@ -6,11 +6,10 @@ overpass_url = "https://overpass-api.de/api/interpreter"
 
 editor_dir = Path(__file__).resolve().parent
 project_dir = editor_dir.parent
-cache_dir = project_dir.joinpath("cache")
-ways_dir = project_dir.joinpath("ways")
-relations_dir = project_dir.joinpath("relations")
-reversed_dir = project_dir.joinpath("reversed")
-scripts_dir = project_dir.joinpath("scripts")
+
+cache_dir = editor_dir.joinpath("cache")
+input_dir = project_dir.joinpath("input")
+data_dir = project_dir.joinpath("data")
 
 cache_dir.mkdir(exist_ok=True)
 
