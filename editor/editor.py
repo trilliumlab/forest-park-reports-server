@@ -169,11 +169,8 @@ def set_menubar_name(name):
                 info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
                 info['CFBundleName'] = name
                 info['CFBundleDisplayName'] = name
-                print(f"Set menubar name {name}")
         except ImportError:
             print("pyobjc not installed, not setting app name.")
-    else:
-        print("Menubar name not set: platform must be macOS!")
 
 
 class App(CTk):
@@ -414,6 +411,7 @@ class App(CTk):
 
         # Load reversed
         self.reversed = load_json(system_data_dir.joinpath("reversed.json"), [])
+        print(self.reversed)
 
         # Fetch trails from overpass
         print(f"Loading trail system {trail_system}")
