@@ -7,12 +7,8 @@ relation(1760140);
 map_to_area;
 (
   (
-    way[highway=path](area);
-    way[highway=footway](area);
-    way["RLIS:systemname"="Linnton Park Trails"];
-    way["RLIS:systemname"="Macleay Park Trails"];
-    way["RLIS:systemname"="Ridge Trail"];
-    way["RLIS:systemname"="Holman Property Trails"];
+    way[highway~"path|footway"](area);
+    way["RLIS:systemname"~"Linnton Park Trails|Macleay Park Trails|Ridge Trail|Holman Property Trails"](area);
     way(449538957);
     way(113897534);
     // Wildwood trails outside of forest park

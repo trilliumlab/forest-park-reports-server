@@ -435,7 +435,7 @@ class App(CTk):
             self.paths.add(path)
 
         # Load relations
-        self.relations = load_json(system_data_dir.joinpath("relations.json"), {})
+        self.relations = load_json(system_data_dir.joinpath("relations.json"), [])
 
         # Update UI
         self.update_markers()
@@ -515,12 +515,16 @@ class App(CTk):
         save_json(self.reversed, reversed_path)
         print(f"Reversed saved to {reversed_path}")
 
-    def new_relation(self):
-        relation_id = 0
-        relation_ids = [r['id'] for r in self.relations]
-        while relation_id in relation_ids:
-            relation_id += 1
+    def get_relation_id(self):
+        last_relation_file = open(data_dir.joinpath("last_relation"), 'r+')
+        relation_id = int(last_relation_file.read().strip()) + 1
+        last_relation_file.seek(0)
+        last_relation_file.write(str(relation_id))
+        last_relation_file.truncate()
+        return relation_id
 
+    def new_relation(self):
+        relation_id = self.get_relation_id()
         self.relations.append({
             'type': 'relation',
             'id': relation_id,
@@ -528,7 +532,7 @@ class App(CTk):
             'members': []
         })
         self.update_relations_listbox()
-        self.relations_listbox.activate(self.relations_listbox.size()-1)
+        self.relations_listbox.activate(self.relations_listbox.size() - 1)
 
     def delete_relation(self):
         relation = next((r for r in self.relations if r['id'] == self.selected_relation), None)

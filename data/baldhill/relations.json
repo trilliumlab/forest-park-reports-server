@@ -1,0 +1,486 @@
+[
+  {
+    "type": "relation",
+    "id": 91,
+    "tags": {
+      "highway": "track",
+      "name": "Cardwell Hill Trail",
+      "surface": "gravel",
+      "tiger:cfcc": "A51",
+      "tiger:county": "Benton, OR",
+      "tiger:name_base": "CaRoadwell Hill",
+      "tiger:name_direction_prefix": "NW",
+      "tiger:reviewed": "yes",
+      "tracktype": "grade2"
+    },
+    "members": [119456243]
+  },
+  {
+    "type": "relation",
+    "id": 92,
+    "tags": { "highway": "path", "name": "North Trail", "surface": "gravel" },
+    "members": [791515406]
+  },
+  {
+    "type": "relation",
+    "id": 93,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "yes",
+      "highway": "track",
+      "motor_vehicle": "no",
+      "name": "North Road",
+      "surface": "gravel",
+      "tracktype": "grade2"
+    },
+    "members": [791515407]
+  },
+  {
+    "type": "relation",
+    "id": 94,
+    "tags": {
+      "highway": "path",
+      "name": "River Trail",
+      "sac_scale": "hiking",
+      "trail_visibility": "excellent"
+    },
+    "members": [794243582]
+  },
+  {
+    "type": "relation",
+    "id": 95,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "yes",
+      "highway": "track",
+      "motor_vehicle": "permissive",
+      "name": "Lower Meadow Road",
+      "surface": "gravel"
+    },
+    "members": [263375409]
+  },
+  {
+    "type": "relation",
+    "id": 96,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "yes",
+      "highway": "track",
+      "motor_vehicle": "permissive",
+      "name": "Creek Road",
+      "sac_scale": "hiking",
+      "source": "survey",
+      "surface": "gravel",
+      "trail_visibility": "excellent"
+    },
+    "members": [259672641, 794243580]
+  },
+  {
+    "type": "relation",
+    "id": 97,
+    "tags": { "highway": "path", "name": "Bridge Trail" },
+    "members": [793511475]
+  },
+  {
+    "type": "relation",
+    "id": 98,
+    "tags": {
+      "highway": "path",
+      "name": "Creek Trail",
+      "sac_scale": "hiking",
+      "trail_visibility": "excellent"
+    },
+    "members": [794243578]
+  },
+  {
+    "type": "relation",
+    "id": 99,
+    "tags": {
+      "highway": "track",
+      "motor_vehicle": "private",
+      "name": "High Road",
+      "sac_scale": "hiking",
+      "source": "survey",
+      "surface": "gravel",
+      "trail_visibility": "excellent"
+    },
+    "members": [259672642]
+  },
+  {
+    "type": "relation",
+    "id": 100,
+    "tags": {
+      "highway": "path",
+      "name": "Upper Forest Trail",
+      "sac_scale": "hiking",
+      "trail_visibility": "excellent"
+    },
+    "members": [794243579]
+  },
+  {
+    "type": "relation",
+    "id": 101,
+    "tags": {
+      "highway": "path",
+      "name": "Mid Forest Trail",
+      "sac_scale": "hiking",
+      "trail_visibility": "excellent"
+    },
+    "members": [263373947]
+  },
+  {
+    "type": "relation",
+    "id": 102,
+    "tags": {
+      "highway": "track",
+      "motor_vehicle": "private",
+      "name": "Middle Road",
+      "sac_scale": "hiking",
+      "source": "survey",
+      "surface": "gravel",
+      "trail_visibility": "excellent"
+    },
+    "members": [794243581]
+  },
+  {
+    "type": "relation",
+    "id": 103,
+    "tags": { "highway": "path", "name": "Amy's Trail", "surface": "unpaved" },
+    "members": [662774999]
+  },
+  {
+    "type": "relation",
+    "id": 104,
+    "tags": {
+      "highway": "track",
+      "name": "Fitton Green North-South Trail",
+      "surface": "grass",
+      "tracktype": "grade4"
+    },
+    "members": [5247568]
+  },
+  {
+    "type": "relation",
+    "id": 105,
+    "tags": { "highway": "path", "name": "Fitton Green North-South Connector" },
+    "members": [566447671]
+  },
+  {
+    "type": "relation",
+    "id": 106,
+    "tags": { "access": "no", "highway": "path", "mtb:scale:imba": "2" },
+    "members": [253709673]
+  },
+  {
+    "type": "relation",
+    "id": 107,
+    "tags": {
+      "bicycle": "no",
+      "foot": "designated",
+      "highway": "path",
+      "name": "Allen Throop Loop",
+      "sac_scale": "hiking",
+      "surface": "dirt",
+      "trail_visibility": "excellent"
+    },
+    "members": [130610010]
+  },
+  {
+    "type": "relation",
+    "id": 108,
+    "tags": {
+      "bicycle": "yes",
+      "highway": "track",
+      "name": "Cardwell-Fitton Connection",
+      "sac_scale": "hiking",
+      "surface": "gravel",
+      "tracktype": "grade4",
+      "trail_visibility": "excellent"
+    },
+    "members": [132889555, 132889554]
+  },
+  {
+    "type": "relation",
+    "id": 109,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "designated",
+      "highway": "path",
+      "name": "Mulkey Ridge Trail",
+      "surface": "dirt",
+      "lit": "no",
+      "mtb:scale": "1",
+      "mtb:scale:imba": "1",
+      "sac_scale": "hiking",
+      "trail_visibility": "excellent",
+      "width": "2",
+      "bridge": "yes",
+      "layer": "1"
+    },
+    "members": [124703686, 939645583, 939645584, 131144666, 305499643]
+  },
+  {
+    "type": "relation",
+    "id": 110,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "designated",
+      "highway": "path",
+      "surface": "ground",
+      "name": "Mulkey Ridge Offshoot 1"
+    },
+    "members": [794243586]
+  },
+  {
+    "type": "relation",
+    "id": 111,
+    "tags": { "highway": "path", "name": "Mulkey Ridge Offshoot 2" },
+    "members": [932657263]
+  },
+  {
+    "type": "relation",
+    "id": 112,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "designated",
+      "highway": "path",
+      "surface": "compacted",
+      "name": "Mulkey Ridge Connector 1"
+    },
+    "members": [794243587]
+  },
+  {
+    "type": "relation",
+    "id": 113,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "designated",
+      "highway": "path",
+      "lit": "no",
+      "surface": "compacted",
+      "name": "Mulkey Ridge Connector 2"
+    },
+    "members": [794243588]
+  },
+  {
+    "type": "relation",
+    "id": 114,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "designated",
+      "highway": "path",
+      "lit": "no",
+      "name": "County Connector Trail",
+      "surface": "gravel"
+    },
+    "members": [131144667]
+  },
+  {
+    "type": "relation",
+    "id": 115,
+    "tags": {
+      "foot": "designated",
+      "highway": "path",
+      "name": "Dog Run Trail",
+      "surface": "dirt"
+    },
+    "members": [222398150]
+  },
+  {
+    "type": "relation",
+    "id": 116,
+    "tags": {
+      "bicycle": "designated",
+      "foot": "designated",
+      "highway": "cycleway",
+      "name": "Bald Hill Multi-Use Path",
+      "segregated": "no"
+    },
+    "members": [523530021, 28502054]
+  },
+  {
+    "type": "relation",
+    "id": 117,
+    "tags": {
+      "bicycle": "yes",
+      "foot": "designated",
+      "highway": "path",
+      "name": "Oak Savanna Trail",
+      "surface": "dirt",
+      "lit": "no"
+    },
+    "members": [794243591, 124703688, 615419699]
+  },
+  {
+    "type": "relation",
+    "id": 118,
+    "tags": {
+      "highway": "path",
+      "surface": "ground",
+      "name": "Oak Savanna Connector"
+    },
+    "members": [794243598]
+  },
+  {
+    "type": "relation",
+    "id": 119,
+    "tags": {
+      "highway": "path",
+      "surface": "dirt",
+      "name": "Bald Hill Trail Offshoot"
+    },
+    "members": [367471508]
+  },
+  {
+    "type": "relation",
+    "id": 120,
+    "tags": {
+      "foot": "yes",
+      "highway": "path",
+      "name": "North Summit Trail",
+      "surface": "ground"
+    },
+    "members": [147493038]
+  },
+  {
+    "type": "relation",
+    "id": 121,
+    "tags": {
+      "highway": "track",
+      "horse": "yes",
+      "name": "Summit Road",
+      "surface": "ground",
+      "tracktype": "grade5"
+    },
+    "members": [5237401]
+  },
+  {
+    "type": "relation",
+    "id": 122,
+    "tags": {
+      "bicycle": "no",
+      "foot": "yes",
+      "highway": "path",
+      "horse": "no",
+      "name": "Mardi's Meadow Interpretive Trail",
+      "surface": "ground"
+    },
+    "members": [124703685]
+  },
+  {
+    "type": "relation",
+    "id": 123,
+    "tags": {
+      "highway": "path",
+      "name": "West Summit Trail",
+      "surface": "ground"
+    },
+    "members": [794243590]
+  },
+  {
+    "type": "relation",
+    "id": 124,
+    "tags": {
+      "foot": "designated",
+      "highway": "path",
+      "horse": "no",
+      "name": "East Summit Trail",
+      "surface": "ground"
+    },
+    "members": [131049295]
+  },
+  {
+    "type": "relation",
+    "id": 125,
+    "tags": { "highway": "path", "name": "Summit Connector 1" },
+    "members": [367471507]
+  },
+  {
+    "type": "relation",
+    "id": 126,
+    "tags": { "highway": "path", "surface": "ground" },
+    "members": [794243595]
+  },
+  {
+    "type": "relation",
+    "id": 127,
+    "tags": { "highway": "path", "surface": "ground" },
+    "members": [795002781]
+  },
+  {
+    "type": "relation",
+    "id": 128,
+    "tags": { "highway": "path", "surface": "ground" },
+    "members": [794243592]
+  },
+  {
+    "type": "relation",
+    "id": 129,
+    "tags": { "highway": "path", "surface": "ground" },
+    "members": [794243585]
+  },
+  {
+    "type": "relation",
+    "id": 130,
+    "tags": {
+      "bicycle": "designated",
+      "foot": "designated",
+      "highway": "cycleway",
+      "name": "Midge Cramer Multi-Use Path",
+      "segregated": "no"
+    },
+    "members": [28502059]
+  },
+  {
+    "type": "relation",
+    "id": 131,
+    "tags": {
+      "highway": "path",
+      "surface": "ground",
+      "name": "Bald Hill Connector"
+    },
+    "members": [794248078]
+  },
+  {
+    "type": "relation",
+    "id": 132,
+    "tags": {
+      "highway": "path",
+      "surface": "ground",
+      "name": "Summit Connector 2"
+    },
+    "members": [794243594]
+  },
+  {
+    "type": "relation",
+    "id": 133,
+    "tags": {
+      "highway": "path",
+      "surface": "ground",
+      "name": "Summit Offshoot 1"
+    },
+    "members": [794243593]
+  },
+  {
+    "type": "relation",
+    "id": 134,
+    "tags": {
+      "highway": "path",
+      "surface": "ground",
+      "name": "Summit Offshoot 2"
+    },
+    "members": [795002780]
+  },
+  {
+    "type": "relation",
+    "id": 135,
+    "tags": { "highway": "track" },
+    "members": [939645619]
+  },
+  {
+    "type": "relation",
+    "id": 136,
+    "tags": { "highway": "track" },
+    "members": [939645620]
+  }
+]
