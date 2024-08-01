@@ -1,0 +1,158 @@
+[
+  {
+    "type": "relation",
+    "id": 137,
+    "tags": {
+      "highway": "footway",
+      "lit": "no",
+      "name": "Schmitz Boulevard",
+      "surface": "asphalt",
+      "width": "2",
+      "bicycle": "no"
+    },
+    "members": [102213469, 382762553, 204190750]
+  },
+  {
+    "type": "relation",
+    "id": 138,
+    "tags": {
+      "bicycle": "no",
+      "highway": "footway",
+      "surface": "ground",
+      "width": "1",
+      "bridge": "yes",
+      "foot": "yes",
+      "layer": "1"
+    },
+    "members": [75209826, 227025282, 227025284]
+  },
+  {
+    "type": "relation",
+    "id": 139,
+    "tags": {
+      "bicycle": "no",
+      "foot": "yes",
+      "highway": "footway",
+      "lit": "no",
+      "surface": "dirt",
+      "width": "0.7",
+      "handrail": "no",
+      "incline": "up",
+      "ramp": "no",
+      "step_count": "28",
+      "access": "no"
+    },
+    "members": [204190761, 204190754, 164255207]
+  },
+  {
+    "type": "relation",
+    "id": 140,
+    "tags": {
+      "handrail": "yes",
+      "highway": "footway",
+      "incline": "down",
+      "lit": "no",
+      "name": "Schmitz Boulevard",
+      "ramp": "no",
+      "step_count": "18",
+      "surface": "pebblestone",
+      "width": "1",
+      "bicycle": "no"
+    },
+    "members": [204190759, 204190755, 204190756, 204190760]
+  },
+  {
+    "type": "relation",
+    "id": 141,
+    "tags": { "highway": "footway", "surface": "ground", "width": "1.2" },
+    "members": [204190751]
+  },
+  {
+    "type": "relation",
+    "id": 142,
+    "tags": {
+      "highway": "footway",
+      "lit": "no",
+      "name": "Schmitz Boulevard",
+      "surface": "ground",
+      "width": "1.2",
+      "bicycle": "no",
+      "foot": "yes"
+    },
+    "members": [382762547, 382762550]
+  },
+  {
+    "type": "relation",
+    "id": 143,
+    "tags": {
+      "bicycle": "no",
+      "foot": "yes",
+      "highway": "footway",
+      "surface": "ground",
+      "width": "1.5"
+    },
+    "members": [204190757]
+  },
+  {
+    "type": "relation",
+    "id": 144,
+    "tags": {
+      "bicycle": "no",
+      "highway": "footway",
+      "lit": "no",
+      "surface": "ground",
+      "width": "0.4"
+    },
+    "members": [204190758]
+  },
+  {
+    "type": "relation",
+    "id": 145,
+    "tags": {
+      "bicycle": "no",
+      "foot": "yes",
+      "highway": "footway",
+      "surface": "ground",
+      "width": "0.4"
+    },
+    "members": [224131446]
+  },
+  {
+    "type": "relation",
+    "id": 146,
+    "tags": {
+      "bicycle": "no",
+      "foot": "yes",
+      "highway": "footway",
+      "surface": "gravel",
+      "width": "1",
+      "crossing": "unmarked",
+      "crossing:markings": "no",
+      "footway": "crossing"
+    },
+    "members": [1217628524, 75209827]
+  },
+  {
+    "type": "relation",
+    "id": 147,
+    "tags": {
+      "bicycle": "no",
+      "highway": "footway",
+      "surface": "ground",
+      "width": "0.7"
+    },
+    "members": [75209825]
+  },
+  {
+    "type": "relation",
+    "id": 148,
+    "tags": {
+      "bicycle": "no",
+      "foot": "yes",
+      "highway": "footway",
+      "surface": "ground",
+      "width": "0.7"
+    },
+    "members": [164255205]
+  }
+]
