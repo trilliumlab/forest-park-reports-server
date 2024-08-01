@@ -267,7 +267,7 @@ class App(CTk):
         self.map_frame.grid_columnconfigure(1, weight=1)
         self.map_frame.grid_columnconfigure(2, weight=0)
 
-        self.map_widget = TkinterMapView(self.map_frame, corner_radius=10)
+        self.map_widget = TkinterMapView(self.map_frame, corner_radius=10, user_agent="ForestParkReportsEditor/1.0")
         self.map_widget.grid(row=1, rowspan=1, column=0, columnspan=3, sticky="nswe", padx=(0, 12), pady=(0, 12))
 
         self.tag_entry = CTkEntry(master=self.map_frame, placeholder_text="tag")
