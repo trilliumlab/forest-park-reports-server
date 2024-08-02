@@ -10,7 +10,7 @@ from ordered_set import OrderedSet
 import importlib.util
 import webbrowser
 
-input_dirs = {item.stem: item for item in input_dir.iterdir()}
+input_dirs = {item.stem: item for item in input_dir.iterdir() if item.is_dir()}
 data_dirs = {system: data_dir.joinpath(system) for system in input_dirs.keys()}
 # Ensure all output directories exist
 for system_data_dir in data_dirs.values():

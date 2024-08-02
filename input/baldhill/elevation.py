@@ -1,7 +1,7 @@
 import rasterio as rio
 from pathlib import Path
 
-src = rio.open(Path(__file__).resolve().parent.parent.joinpath('portland.tif'))
+src = rio.open(Path(__file__).resolve().parent.parent.joinpath('corvallis.tif'))
 band = src.read(1)
 
 
