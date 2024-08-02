@@ -19,12 +19,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
+          key: ${{ runner.os }}-deno-cache-${{ hashFiles('server/deno.lock') }}
           restore-keys: |
             ${{ runner.os }}-deno-cache-
       # Runs deno fmt --check, deno lint, and deno check
       - name: Run linter
-        run: deno task check
+        run: |
+          cd server
+          deno task check
   test:
     runs-on: ubuntu-latest
     services:
@@ -50,12 +52,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-cache-${{ hashFiles('deno.lock') }}
+          key: ${{ runner.os }}-deno-cache-${{ hashFiles('server/deno.lock') }}
           restore-keys: |
             ${{ runner.os }}-deno-cache-
       # Copies the example config with credentials for gh actions db.
       - name: Create test config
         run: |
+          cd server
           cp config.example.jsonc config.jsonc
           sed -r -i \
             -e 's/<APPLICATION_NAME>/Trail Eyes Github Actions/g' \
