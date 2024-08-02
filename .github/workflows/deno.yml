@@ -69,16 +69,23 @@ jobs:
           cp config.jsonc config.test.jsonc
       # Generates drizzle migrations
       - name: Generate database migrations
-        run: deno task db:generate
+        run: |
+          cd server
+          deno task db:generate
       # Applies drizzle migration
       - name: Migrate database
-        run: deno task db:migrate
+        run: |
+          cd server
+          deno task db:migrate
       # Run deno tests
       - name: Run tests
-        run: deno task test --junit-path=test-report.xml --coverage
+        run: |
+          cd server
+          deno task test --junit-path=test-report.xml --coverage
       # Convert coverage to lcov
       - name: Convert code coverage
         run: |
+          cd server
           deno coverage --lcov --output=coverage.lcov
           sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.lcov
 
@@ -87,13 +94,13 @@ jobs:
         if: success() || failure()        # run this step even if previous step failed
         with:
           name: test-report
-          path: test-report.xml
+          path: server/test-report.xml
       - name: "Upload coverage report"
         uses: actions/upload-artifact@v4
         if: success() || failure()        # run this step even if previous step failed
         with:
           name: coverage-report
-          path: coverage.lcov
+          path: server/coverage.lcov
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
