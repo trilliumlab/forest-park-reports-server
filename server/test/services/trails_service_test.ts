@@ -3,8 +3,7 @@ import { TrailList, TrailsService } from "../../src/service/trails_service.ts";
 import * as path from "@std/path";
 
 const trailService = new TrailsService(
-  path.fromFileUrl(import.meta.resolve("../../test_data/ways_test")),
-  path.fromFileUrl(import.meta.resolve("../../test_data/relations_test")),
+  path.fromFileUrl(import.meta.resolve("../../test_data")),
 );
 await trailService.init();
 
