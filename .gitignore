@@ -7,7 +7,7 @@ logs.sh
 update.sh
 
 # Binary data
-/data/
+input/**/*.tif
 
 # scripts
 cache/
