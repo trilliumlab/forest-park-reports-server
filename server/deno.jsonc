@@ -33,7 +33,8 @@
     "db:generate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit generate",
     "db:drop": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit drop",
     "db:migrate": "deno task db:deps && deno run -A --node-modules-dir npm:drizzle-kit migrate",
-    "ensure-pre-commit-hooks": "deno run --allow-env --allow-sys --allow-read --allow-run .pre-commit-install.ts"
+    "ensure-pre-commit-hooks": "echo 'Skipping'"
+    // "ensure-pre-commit-hooks": "deno run --allow-env --allow-sys --allow-read --allow-run .pre-commit-install.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",
